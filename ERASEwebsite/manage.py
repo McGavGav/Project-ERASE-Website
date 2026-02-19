@@ -5,6 +5,7 @@ import sys
 
 
 def main():
+    #this is from the DJango tutorial, we can liekly remove it?
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
     try:
