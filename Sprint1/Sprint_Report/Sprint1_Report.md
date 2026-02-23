@@ -1,6 +1,7 @@
 # Sprint 1 Report (1/20/26 - 2/22/26)
 
-## TODO: Add Link to Sprint 1 Video
+## Link to Sprint 1 Video
+https://youtu.be/uKzxrsZcxU4?si=4MGqdiaqoI9V5E56
 
 ## What's New
 * Created a barebones website from Django framework.
