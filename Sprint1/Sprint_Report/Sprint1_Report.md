@@ -15,10 +15,15 @@ We did not get to the actual backend development for the project in this sprint.
 None.
 
 ## Incomplete Issues/User Stories
-TODO
+The Kanban board with relevant issues for the project will be setup as development begins in Sprint 2, so for now, the user stories are based on the Requirements and Specifications Document. All user stores are incomplete for this reason.
+1. US1 - User Registration and Login
+2. US2 - Managing Student Information
+3. US3 - Viewing and Managing Events
+4. US4 - Website Navigation and Information Access
+5. US5 - Interacting with the Interactive Map
 
 ## Code Files for Review
-TODO
+None.
 
 ## Retrospective Summary
 Here's what went well:
