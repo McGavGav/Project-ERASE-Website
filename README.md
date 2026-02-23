@@ -18,9 +18,9 @@ Django - Website framework to streamline building the application, with useful f
 
 ### Installation Steps
 
-Install Python for your machine (currently download Python 3.12): https://www.python.org/downloads/\n
-Navigate to the mysite directory\n
-Open a terminal and run python manage.py runserver
+1. Install Python for your machine (currently download Python 3.12): https://www.python.org/downloads/
+2. Navigate to the mysite directory
+3. Open a terminal and run python manage.py runserver
 
 ## Functionality
 
