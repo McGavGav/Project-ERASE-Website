@@ -141,6 +141,16 @@
                 <li><a href="{% url 'pages:home' %}">Home</a></li>
                 <li><a href="{% url 'pages:about' %}">About</a></li>
                 <li><a href="{% url 'pages:contact' %}">Contact</a></li>
+                {% if user.is_authenticated %}
+                <li>
+                    <form method="post" action="{% url 'pages:logout' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background:none;border:none;color:white;font:inherit;cursor:pointer;padding:0;text-decoration:none;opacity:1;transition:opacity 0.3s;">Logout</button>
+                    </form>
+                </li>
+                {% else %}
+                <li><a href="{% url 'pages:login' %}">Login</a></li>
+                {% endif %}
             </ul>
         </nav>
     </header>
