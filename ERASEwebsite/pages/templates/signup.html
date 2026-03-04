@@ -4,27 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Project ERASE</title>
+    <title>Sign Up - Project ERASE</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Garet', Arial, sans-serif;
             line-height: 1.6;
             color: #333;
         }
-        
+
         header {
             background: linear-gradient(135deg, #1368B8 0%, #0283FF 100%);
             color: white;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
+
         nav {
             display: flex;
             justify-content: space-between;
@@ -34,7 +34,7 @@
             padding: 0 2rem;
             height: 80px;
         }
-        
+
         .logo {
             font-size: 1.5rem;
             font-weight: bold;
@@ -42,34 +42,34 @@
             align-items: center;
             height: 100%;
         }
-        
+
         .logo img {
             height: 100%;
             width: auto;
         }
-        
+
         nav ul {
             list-style: none;
             display: flex;
             gap: 2rem;
         }
-        
+
         nav a {
             color: white;
             text-decoration: none;
             transition: opacity 0.3s;
         }
-        
+
         nav a:hover {
             opacity: 0.8;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
         }
-        
+
         .hero {
             background: linear-gradient(135deg, #1368B8 0%, #0283FF 100%);
             color: white;
@@ -77,17 +77,12 @@
             text-align: center;
             margin-bottom: 3rem;
         }
-        
+
         .hero h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
         }
-        
-        .hero p {
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-        }
-        
+
         .btn {
             display: inline-block;
             padding: 0.75rem 1.5rem;
@@ -99,36 +94,42 @@
             font-weight: bold;
             transition: transform 0.3s, box-shadow 0.3s;
         }
-        
+
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
-        
+
         .content {
             padding: 3rem 0;
         }
-        
-        .content h2 {
-            margin-bottom: 1rem;
-            color: #0283FF;
-        }
-        
-        .quote {
-            font-size: 1.3rem;
-            font-style: italic;
-            color: white;
-            padding-left: 1.5rem;
-            margin: 2rem 0;
-            line-height: 1.8;
-        }
-        
+
         footer {
             background-color: #333;
             color: white;
             text-align: center;
             padding: 2rem;
             margin-top: 3rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #0283FF;
+            box-shadow: 0 0 5px rgba(2, 131, 255, 0.3);
         }
     </style>
 </head>
@@ -155,23 +156,59 @@
             </ul>
         </nav>
     </header>
-    
+
     <section class="hero">
         <div class="container">
-            <h1>Welcome to Project ERASE</h1>
-            <p class="quote">Together we can ERASE educational disparity, one eraser at a time</p>
+            <h1>Create an Account</h1>
         </div>
     </section>
-    
+
     <main class="container">
-        <section class="content">
-            <h2>About This Project</h2>
-            <p>Welcome to the Project ERASE website. </p>
-            <p style="margin-top: 1rem;">
-                <a href="{% url 'pages:about' %}" class="btn">Learn More</a>
-            </p>
-        </section>
+        <div class="content">
+            <div style="max-width: 400px; margin: 0 auto; padding: 2rem; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h2 style="text-align: center; margin-bottom: 1.5rem;">Sign Up</h2>
+
+                {% if form.non_field_errors %}
+                    <div style="background-color: #f8d7da; color: #721c24; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="{{ form.password1.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <label for="{{ form.password2.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%; text-align: center; margin: 0;">Sign Up</button>
+                </form>
+
+                <p style="text-align: center; margin-top: 1rem;">
+                    Already have an account? <a href="{% url 'pages:login' %}">Sign in here</a>.
+                </p>
+            </div>
+        </div>
     </main>
-    
+
 </body>
 </html>
