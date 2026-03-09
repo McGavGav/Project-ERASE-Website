@@ -5,15 +5,19 @@ class PagesConfig(AppConfig):
     name = 'pages'
 
     def ready(self):
-        from django.contrib.auth.models import Group, Permission
+        from django.db.models.signals import post_migrate
+        post_migrate.connect(create_groups, sender=self)
 
-        # Create groups if they don't exist
-        admin_group, created = Group.objects.get_or_create(name='admin')
-        user_group, created = Group.objects.get_or_create(name='normal users')
+def create_groups(sender, **kwargs):
+    from django.contrib.auth.models import Group, Permission
 
-        # perms for admins
-        if created:
-            admin_permissions = Permission.objects.all()
-            admin_group.permissions.set(admin_permissions)
+    # Create groups if they don't exist
+    admin_group, created = Group.objects.get_or_create(name='admin')
+    user_group, created = Group.objects.get_or_create(name='normal users')
 
-        #set normal user perms here
+    # perms for admins
+    if created:
+        admin_permissions = Permission.objects.all()
+        admin_group.permissions.set(admin_permissions)
+
+    # set normal user perms here
