@@ -16,4 +16,4 @@ class PagesConfig(AppConfig):
             admin_permissions = Permission.objects.all()
             admin_group.permissions.set(admin_permissions)
 
-        #set normal user perms here.
+        #set normal user perms here
