@@ -28,7 +28,7 @@ def signup(request):
             user = form.save()
 
             # users automatically into normal user perms
-            normal_users_group = Group.objects.get(name='normal users')
+            normal_users_group, _ = Group.objects.get_or_create(name='normal users')
             normal_users_group.user_set.add(user)
 
             return redirect('pages:login')
