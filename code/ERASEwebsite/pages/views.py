@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import Group
 
 def home(request):
     """Render the homepage"""
@@ -24,7 +25,12 @@ def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save()
+
+            # users automatically into normal user perms
+            normal_users_group = Group.objects.get(name='normal users')
+            normal_users_group.user_set.add(user)
+
             return redirect('pages:login')
     else:
         form = UserCreationForm()
