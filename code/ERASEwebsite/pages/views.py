@@ -36,6 +36,10 @@ def signup(request):
         form = UserCreationForm()
     return render(request, 'signup.html', {'form': form})
 
+def calendar(request):
+    """Render the calendar page"""
+    return render(request, 'calendar.html')
+
 
 class CustomLoginView(LoginView):
     """Custom login view"""

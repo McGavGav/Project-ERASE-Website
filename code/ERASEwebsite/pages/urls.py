@@ -11,4 +11,5 @@ urlpatterns = [
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='pages:home'), name='logout'),
     path('signup/', views.signup, name='signup'),
+    path('calendar/', views.calendar, name='calendar'),
 ]

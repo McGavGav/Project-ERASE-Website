@@ -142,6 +142,7 @@
                 <li><a href="{% url 'pages:home' %}">Home</a></li>
                 <li><a href="{% url 'pages:about' %}">About</a></li>
                 <li><a href="{% url 'pages:contact' %}">Contact</a></li>
+                <li><a href="{% url 'pages:calendar' %}">Calendar</a></li>
                 {% if user.is_authenticated %}
                 <li>
                     <form method="post" action="{% url 'pages:logout' %}" style="display:inline;">
