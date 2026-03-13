@@ -12,7 +12,7 @@ class EventCalendar(HTMLCalendar):
         """
         super().__init__()
     
-    def formatday(self, day):
+    def formatday(self, day, weekday):
         """
         Return HTML for a single day cell
         
@@ -40,7 +40,7 @@ class EventCalendar(HTMLCalendar):
     
     def formatweek(self, theweek):
         """Return HTML for a week (row)"""
-        s = ''.join(self.formatday(d, wd, self.get_events_for_day(d))
+        s = ''.join(self.formatday(d, wd)
                     for (d, wd) in theweek)
         return f'<tr>{s}</tr>'
     
@@ -53,7 +53,7 @@ class EventCalendar(HTMLCalendar):
         a = v.append
         a('<table border="0" cellpadding="0" cellspacing="0" class="calendar-table">')
         a('\n')
-        a(self.formatheader())
+        a(self.formatweekheader())
         a('\n')
         for week in self.monthdays2calendar(theyear, themonth):
             a(self.formatweek(week))
