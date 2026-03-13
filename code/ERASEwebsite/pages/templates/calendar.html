@@ -109,26 +109,13 @@
 
 <div class="calendar-containter">
     <div class="calendar-header">
-        <h2 id="monthYear"></h2>
+        <h2>{{ month_name }} {{ current_year }}</h2>
         <div class="month-buttons">
-            <button>Previous Month</button>
-            <button>Next Month</button>
+            <a href="?month={{ prev_month }}&year={{ prev_year }}">← Previous Month</a>
+            <a href="?month={{ next_month }}&year={{ next_year }}">Next Month →</a>
         </div>
     </div>
 
-    <table class="calendar-table">
-        <thead>
-            <tr>
-                <th>Sun</th>
-                <th>Mon</th>
-                <th>Tue</th>
-                <th>Wed</th>
-                <th>Thu</th>
-                <th>Fri</th>
-                <th>Sat</th>
-            </tr>
-        </thead>
-        <tbody id="calendar-body"></tbody>
-    </table>
+    {{ calendar_html|safe }}
 </div>
 {% endblock %}
