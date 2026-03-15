@@ -90,6 +90,43 @@ def calendar(request):
     return render(request, 'calendar.html', context)
 
 
+
+def studentdb(request):
+    # temp data to test database view.
+    students = [
+        {"name": "Anne", "gender": "Female", "school": "Washington State University", "photo": None},
+        {"name": "Tim", "gender": "Male", "school": "Lincoln Primary", "photo": None},
+        {"name": "Emma", "gender": "Female", "school": "Washington Middle School", "photo": None},
+        {"name": "Daniel", "gender": "Male", "school": "Franklin High", "photo": None},
+    ]
+    
+    search_query = request.GET.get("search", "")
+    gender_filter = request.GET.get("gender", "")
+    school_filter = request.GET.get("school", "")
+
+    filtered_students = []
+
+    for student in students:
+        if search_query and search_query.lower() not in student["name"].lower():
+            continue
+
+        if gender_filter and student["gender"] != gender_filter:
+            continue
+
+        if school_filter and school_filter.lower() not in student["school"].lower():
+            continue
+
+        filtered_students.append(student)
+
+    context = {
+        "students": filtered_students,
+        "search_query": search_query,
+        "gender_filter": gender_filter,
+        "school_filter": school_filter
+    }
+
+    return render(request, "studentdb.html", context)
+
 class CustomLoginView(LoginView):
     """Custom login view"""
     template_name = 'login.html'
