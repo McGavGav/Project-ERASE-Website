@@ -6,6 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group
+from django.shortcuts import render
 import sys
 import os
 
@@ -93,3 +94,6 @@ class CustomLoginView(LoginView):
     """Custom login view"""
     template_name = 'login.html'
     redirect_authenticated_user = False
+
+def shipment_map(request):
+    return render(request, "shipment_map.html")
