@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Project ERASE Interactive Map Prototype</title>
+
+<!-- Leaflet CSS and JS loaded via CDN for interactive mapping -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- Small page styling for body and map container -->
+<style>
+
+body{
+font-family:Arial;
+margin:20px;
+}
+
+#map{
+height:600px;
+width:100%;
+}
+
+.controls{
+margin-bottom:10px;
+}
+
+
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Project ERASE Interactive Map Prototype</h2>
+
+<!-- UI controls for transit timing and playback actions -->
+<div class="controls">
+
+<label>Total Transit Time:</label>
+
+<input id="daysInput" type="number" value="0" style="width:60px"> days
+<input id="hoursInput" type="number" value="0" style="width:60px"> hours
+<input id="minutesInput" type="number" value="1" style="width:60px"> minutes
+<input id="secondsInput" type="number" value="0" style="width:60px"> seconds
+
+<button onclick="startShipment()">Start</button>
+<button onclick="pauseShipment()">Pause</button>
+<button onclick="resetShipment()">Reset</button>
+
+</div>
+
+<div style="margin-top:10px;">
+
+<strong>Status:</strong>
+<span id="status">Waiting</span>
+
+&nbsp;&nbsp;
+
+<strong>ETA:</strong>
+<span id="eta">--</span>
+
+&nbsp;&nbsp;
+
+<strong>Elapsed Time:</strong>
+<span id="timer">0 s</span>
+
+&nbsp;&nbsp;
+
+<strong>Progress:</strong>
+<span id="progress">0%</span>
+
+&nbsp;&nbsp;
+
+<strong>Distance Traveled:</strong>
+<span id="distance">0 miles</span>
+
+&nbsp;&nbsp;
+
+<strong>Distance Remaining:</strong>
+<span id="remaining">0 miles</span>
+
+</div>
+
+<div id="map"></div>
+
+<script>
+
+// JavaScript for the interactive shipment simulation
+
+// Origin coordinate: Pullman, Washington
+const origin = [46.7298,-117.1817]
+
+// Destination coordinate: Guatemala City
+const destination = [14.6349,-90.5069]
+
+// State variables for animation and timing
+var startTime = null
+var totalTransitSeconds = 0
+var animationInterval = null
+
+// Circle distance between two lat/lng points in miles
+function haversineDistance(lat1, lon1, lat2, lon2){
+
+var R = 3958.8   // Earth radius in miles
+
+var dLat = (lat2-lat1) * Math.PI/180
+var dLon = (lon2-lon1) * Math.PI/180
+
+var a =
+Math.sin(dLat/2)*Math.sin(dLat/2) +
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2)*Math.sin(dLon/2)
+
+var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+
+return R*c
+}
+
+var totalDistance = haversineDistance(
+origin[0],origin[1],
+destination[0],destination[1]
+)
+
+// Create a curved arc path between origin and destination
+function createArc(start, end, segments=100){
+
+var latlngs = []
+
+for(let i=0;i<=segments;i++){
+
+var t = i/segments
+
+var lat =
+start[0] + (end[0]-start[0])*t
+
+var lng =
+start[1] + (end[1]-start[1])*t
+
+var offset = Math.sin(Math.PI*t)*5
+
+latlngs.push([lat+offset,lng])
+
+}
+
+return latlngs
+}
+
+// Start shipment animation and compute ETA based on input total transit time
+function startShipment(){
+
+var days = Number(document.getElementById("daysInput").value)
+var hours = Number(document.getElementById("hoursInput").value)
+var minutes = Number(document.getElementById("minutesInput").value)
+var seconds = Number(document.getElementById("secondsInput").value)
+
+totalTransitSeconds =
+days*86400 + hours*3600 + minutes*60 + seconds
+
+if(totalTransitSeconds <= 0) return
+
+startTime = Date.now()
+
+document.getElementById("status").innerText = "In Transit"
+
+var etaTime =
+new Date(Date.now() + totalTransitSeconds*1000)
+
+document.getElementById("eta").innerText =
+etaTime.toLocaleTimeString()
+
+if(animationInterval) clearInterval(animationInterval)
+
+animationInterval = setInterval(updateShipmentPosition,100)
+
+}
+
+// Update shipment marker along the route and refresh UI stats each tick
+function updateShipmentPosition(){
+
+var elapsedSeconds =
+(Date.now() - startTime)/1000
+
+var progress = elapsedSeconds / totalTransitSeconds
+
+if(progress > 1) progress = 1
+
+var index = Math.floor(progress * routePoints.length)
+
+if(index >= routePoints.length)
+index = routePoints.length - 1
+
+var position = routePoints[index]
+
+shipmentMarker.setLatLng(position)
+
+var completedPoints =
+routePoints.slice(0,index+1)
+
+var remainingPoints =
+routePoints.slice(index)
+
+completedRoute.setLatLngs(completedPoints)
+
+remainingRoute.setLatLngs(remainingPoints)
+
+// Update timer
+document.getElementById("timer").innerText =
+elapsedSeconds.toFixed(1) + " s"
+
+// Update distance traveled
+var traveled =
+totalDistance * progress
+
+var remaining = totalDistance - traveled
+
+document.getElementById("remaining").innerText =
+remaining.toFixed(2) + " miles"
+
+document.getElementById("progress").innerText =
+(progress*100).toFixed(1) + "%"
+
+document.getElementById("distance").innerText =
+traveled.toFixed(2) + " miles"
+
+shipmentMarker.bindPopup(
+"Shipment ERASE-001<br>" +
+(progress*100).toFixed(1) + "% complete"
+)
+
+if(progress >= 1){
+clearInterval(animationInterval)
+document.getElementById("status").innerText = "Delivered"
+}
+
+
+}
+
+// Pause the running shipment animation
+function pauseShipment(){
+
+if(animationInterval){
+clearInterval(animationInterval)
+}
+
+document.getElementById("status").innerText = "Paused"
+
+}
+
+// Reset all shipment state and UI values back to initial starting conditions
+function resetShipment(){
+
+if(animationInterval){
+clearInterval(animationInterval)
+}
+
+startTime = null
+
+shipmentMarker.setLatLng(origin)
+
+completedRoute.setLatLngs([])
+
+remainingRoute.setLatLngs(routePoints)
+
+document.getElementById("timer").innerText = "0 s"
+document.getElementById("distance").innerText = "0 miles"
+document.getElementById("remaining").innerText =
+totalDistance.toFixed(2) + " miles"
+
+document.getElementById("progress").innerText = "0%"
+document.getElementById("status").innerText = "Waiting"
+
+shipmentMarker.bindPopup("Shipment ERASE-001<br>0% complete")
+
+}
+
+// Initialize Leaflet map and tile layer
+var map = L.map('map').setView([35,-105],4)
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{ attribution:'OpenStreetMap'}
+).addTo(map)
+
+// Build route points and draw route polylines
+var routePoints = createArc(origin,destination)
+
+var completedRoute = L.polyline([],{
+color:'green',
+weight:4
+}).addTo(map)
+
+var remainingRoute = L.polyline(routePoints,{
+color:'blue',
+weight:4
+}).addTo(map)
+
+map.fitBounds(routePoints)
+
+// Origin marker
+L.marker(origin).addTo(map)
+.bindPopup("Origin: Pullman, WA")
+
+// Destination marker
+L.marker(destination).addTo(map)
+.bindPopup("Destination: Guatemala")
+
+// Animated shipment marker
+var shipmentMarker = L.circleMarker(origin,{
+radius:12,
+color:'black',
+fillColor:'red',
+fillOpacity:1,
+weight:2
+}).addTo(map)
+
+shipmentMarker.bindPopup("ERASE Shipement 001")
+
+
+// Utility function to update marker
+function updateShipment(){
+
+var hours = Number(document.getElementById("hoursInput").value)
+
+var totalHours = Number(document.getElementById("totalHoursInput").value)
+
+if(totalHours <= 0) return
+
+var progress = hours / totalHours
+
+if(progress < 0) progress = 0
+if(progress > 1) progress = 1
+
+var lat =
+origin[0] + (destination[0] - origin[0]) * progress
+
+var lng =
+origin[1] + (destination[1] - origin[1]) * progress
+
+var position = [lat,lng]
+
+// Move marker
+shipmentMarker.setLatLng(position)
+
+// Update completed route
+completedRoute.setLatLngs([origin, position])
+
+// Update remaining route
+remainingRoute.setLatLngs([position, destination])
+
+}
+
+</script>
+
+</body>
+</html>
