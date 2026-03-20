@@ -43,11 +43,19 @@
 
     .calendar-table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
         background: white;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         border-radius: 5px;
         overflow: hidden;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+        width: 14.285%;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .calendar-table th {
