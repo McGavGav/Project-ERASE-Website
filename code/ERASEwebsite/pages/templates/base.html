@@ -129,6 +129,25 @@
             padding: 2rem;
             margin-top: 3rem;
         }
+
+        .nav-admin-link {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background-color: #eb4c4c;
+            color: #333;
+            font-size: 0.6rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 0.1rem 0.35rem;
+            border-radius: 3px;
+            letter-spacing: 0.05em;
+            vertical-align: middle;
+        }
     </style>
     {% block extra_styles %}{% endblock %}
 </head>
@@ -151,6 +170,12 @@
                         <button type="submit" style="background:none;border:none;color:white;font:inherit;cursor:pointer;padding:0;opacity:1;transition:opacity 0.3s;">Logout</button>
                     </form>
                 </li>
+                {% if user.is_superuser %}
+                <li><a href="{% url 'pages:manage_users' %}" class="nav-admin-link">Manage Users<span class="admin-badge">Master</span></a></li>
+                {% endif %}
+                {% if user.is_staff or user.is_superuser %}
+                <li><a href="{% url 'admin:index' %}" class="nav-admin-link">Admin Panel<span class="admin-badge">Admin</span></a></li>
+                {% endif %}
                 {% else %}
                 <li><a href="{% url 'pages:login' %}">Login</a></li>
                 {% endif %}
