@@ -1,12 +1,13 @@
 from calendar import month_name
 from datetime import datetime
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import Group
-from django.shortcuts import render
+from django.contrib.auth.models import Group, User
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 import sys
 import os
 
@@ -131,6 +132,31 @@ class CustomLoginView(LoginView):
     """Custom login view"""
     template_name = 'login.html'
     redirect_authenticated_user = False
+
+@login_required
+def manage_users(request):
+    """Only the master account can grant/revoke admin privileges."""
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        target_id = request.POST.get('user_id')
+        action = request.POST.get('action')
+        target_user = get_object_or_404(User, pk=target_id)
+
+        # Prevents the master account from being demoted
+        if not target_user.is_superuser:
+            if action == 'grant':
+                target_user.is_staff = True
+                target_user.save()
+            elif action == 'revoke':
+                target_user.is_staff = False
+                target_user.save()
+
+        return redirect('pages:manage_users')
+
+    users = User.objects.exclude(pk=request.user.pk).order_by('username')
+    return render(request, 'manage_users.html', {'users': users})
 
 def shipment_map(request):
     return render(request, "shipment_map.html")
