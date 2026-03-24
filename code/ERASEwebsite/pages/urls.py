@@ -13,5 +13,6 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('calendar/', views.calendar, name='calendar'),
     path('shipment-map/', views.shipment_map),
-    path('studentdb/', views.studentdb, name='studentdb')
+    path('studentdb/', views.studentdb, name='studentdb'),
+    path('manage-users/', views.manage_users, name='manage_users')
 ]

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .manage-users-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .manage-users-table thead {
+        background: linear-gradient(135deg, #1368B8 0%, #0283FF 100%);
+        color: white;
+    }
+
+    .manage-users-table th,
+    .manage-users-table td {
+        padding: 0.9rem 1.2rem;
+        text-align: left;
+    }
+
+    .manage-users-table tbody tr:nth-child(even) {
+        background-color: #f4f8ff;
+    }
+
+    .manage-users-table tbody tr:hover {
+        background-color: #e8f0fe;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.2rem 0.55rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .badge-admin {
+        background-color: #FFD700;
+        color: #333;
+    }
+
+    .badge-normal {
+        background-color: #e0e0e0;
+        color: #555;
+    }
+
+    .btn-grant {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 0.4rem 0.9rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+
+    .btn-grant:hover {
+        background-color: #218838;
+    }
+
+    .btn-revoke {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 0.4rem 0.9rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+
+    .btn-revoke:hover {
+        background-color: #c82333;
+    }
+
+    .page-note {
+        background-color: #fff8e1;
+        border-left: 4px solid #FFD700;
+        padding: 0.75rem 1.2rem;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+        color: #555;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Manage Users</h1>
+</div>
+
+<main class="container">
+    <div class="content">
+        <div class="page-note">
+            As the <strong>Master Account</strong>, you can grant or revoke <strong>Admin</strong> privileges for any user below.
+            Admin users gain access to Admin privileges and can see user information.
+        </div>
+
+        {% if users %}
+        <table class="manage-users-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email|default:"—" }}</td>
+                    <td>
+                        {% if u.is_staff %}
+                            <span class="badge badge-admin">Admin</span>
+                        {% else %}
+                            <span class="badge badge-normal">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_staff %}
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ u.pk }}">
+                                <input type="hidden" name="action" value="revoke">
+                                <button type="submit" class="btn-revoke"
+                                    onclick="return confirm('Revoke admin privileges from {{ u.username }}?')">
+                                    Revoke Admin
+                                </button>
+                            </form>
+                        {% else %}
+                            <form method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ u.pk }}">
+                                <input type="hidden" name="action" value="grant">
+                                <button type="submit" class="btn-grant"
+                                    onclick="return confirm('Grant admin privileges to {{ u.username }}?')">
+                                    Grant Admin
+                                </button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p>No other users found.</p>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}
