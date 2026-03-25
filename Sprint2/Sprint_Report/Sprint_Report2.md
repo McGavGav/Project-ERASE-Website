@@ -31,8 +31,8 @@ US-1, US-4, Map Interface, Student Database Interface, Calendar, User Authentica
 Here's what went well:
 * Progress on Features progressed smoothly
 * Communication remained effective and clear between members
-* Client meeting established a consistent schedule.
-* Basic framework and some features of the website are present.
+* Client meeting established a consistent schedule
+* Basic framework and some features of the website are present
 
 Here's what we'd like to improve:
 * 
