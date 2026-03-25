@@ -35,7 +35,8 @@ Here's what went well:
 * Basic framework and some features of the website are present
 
 Here's what we'd like to improve:
-* 
+* Begin implementation earlier in the sprint to allow more time for testing
+* Increase testing and validation of features before completion
 
 Here are changes we plan to implement in the next sprint:
 * Translation feature
