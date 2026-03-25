@@ -1,7 +1,7 @@
 # Sprint 2 Report (2/22/26 - 3/24/26)
 
 ## Link to Sprint 2 Video
-
+https://youtu.be/JEWZsiOcWqM?si=cQyCZgnJlvj2mbjl
 
 ## What's New
 * User Creation
