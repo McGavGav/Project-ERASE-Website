@@ -6,7 +6,7 @@
 ## What's New
 * User Creation
 * User Roles
-* Map Prototype
+* Interactive Map Prototype
 * Student Database
 * Calendar/Event Page
 * Easier HTML page creation
@@ -25,7 +25,10 @@ US-1, US-4, Map Interface, Student Database Interface, Calendar, User Authentica
 * Final Student Database
 
 ## Code Files for Review
-
+* Authentication system files
+* Map prototype
+* Student database models and views
+* Calendar/event page implementation
 
 ## Retrospective Summary
 Here's what went well:
@@ -41,3 +44,4 @@ Here's what we'd like to improve:
 Here are changes we plan to implement in the next sprint:
 * Translation feature
 * Finished Map & Student DB from client info
+* Begin integrating front-end and back-end components more tightly
