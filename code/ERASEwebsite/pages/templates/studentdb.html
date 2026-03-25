@@ -4,6 +4,16 @@
 
 {% block extra_styles %}
 <style>
+    :root {
+        --primary: #0A84FF;
+        --primary-hover: #006edc;
+        --danger: #ff4d4d;
+        --danger-hover: #cc0000;
+        --bg-light: #f5f9ff;
+        --text-dark: #333;
+        --radius: 16px;
+    }
+
     .student-db {
         background: #ffffff;
         padding: 40px 0;
@@ -16,76 +26,116 @@
         justify-content: center;
     }
 
-    .student-db .student-card {
-        background: #0098FF;
+    .student-card {
+        background: var(--primary);
         color: white;
-        border-radius: 40px;
-        padding: 30px;
+        border-radius: 25px;
+        padding: 25px;
         width: 500px;
         display: flex;
         align-items: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        transition: 0.2s ease;
     }
 
-    .student-db .student-image {
+    .student-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .student-image {
         width: 150px;
-        height: 250px;
-        background: #ddd;
-        border-radius: 25px;
-        border: 3px solid #333;
+        height: 230px;
+        background: #eaeaea;
+        border-radius: 20px;
+        border: 2px solid #ccc;
         flex-shrink: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        text-align: center;
-        color: #333;
+        color: var(--text-dark);
         font-weight: bold;
-        margin-right: 30px;
+        margin-right: 25px;
         overflow: hidden;
     }
 
-    .student-db .student-image img {
+    .student-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
 
-    .student-db .student-details {
-        font-size: 22px;
-        line-height: 2.2;
+    .student-details {
+        font-size: 20px;
+        line-height: 2;
     }
 
-    .student-db .label {
-        font-weight: bold;
+    .label {
+        font-weight: 600;
     }
 
-    .search-bar {
-        margin-bottom: 30px;
+    .search-bar,
+    .admin-form {
         display: flex;
         justify-content: center;
+        margin-bottom: 30px;
     }
 
-    .search-bar form {
+    .search-bar form,
+    .admin-form form {
         display: flex;
-        gap: 15px;
+        gap: 12px;
         flex-wrap: wrap;
+        background: var(--bg-light);
+        padding: 15px 20px;
+        border-radius: var(--radius);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
 
-    .search-bar input,
-    .search-bar select {
-        padding: 10px;
-        font-size: 16px;
-        border-radius: 6px;
+    input,
+    select {
+        padding: 10px 12px;
+        font-size: 15px;
+        border-radius: 10px;
         border: 1px solid #ccc;
+        transition: 0.2s ease;
     }
 
-    .search-bar button {
-        padding: 10px 20px;
-        background: #0283FF;
-        color: white;
+    input:focus,
+    select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(10,132,255,0.2);
+    }
+
+    .btn {
+        padding: 10px 18px;
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
         cursor: pointer;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+    }
+
+    .btn-danger {
+        background: var(--danger);
+        color: white;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    .btn-danger:hover {
+        background: var(--danger-hover);
+        transform: translateY(-1px);
     }
 </style>
 {% endblock %}
@@ -94,6 +144,20 @@
 <div class="page-header">
     <h1>Student Database</h1>
 </div>
+
+{% if request.user.is_staff or request.user.is_superuser %}
+<div class="admin-form">
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="text" name="gender" placeholder="Gender" required>
+        <input type="text" name="school" placeholder="School" required>
+        <button type="submit" name="action" value="add" class="btn btn-primary">
+            Add Student
+        </button>
+    </form>
+</div>
+{% endif %}
 
 <div class="search-bar">
     <form method="GET">
@@ -107,15 +171,10 @@
             <option value="">All Genders</option>
             <option value="Male"
                 {% if gender_filter == "Male" %}selected{% endif %}
-            >
-                Male
-            </option>
-
+            >Male</option>
             <option value="Female"
                 {% if gender_filter == "Female" %}selected{% endif %}
-            >
-                Female
-            </option>
+            >Female</option>
         </select>
         <input
             type="text"
@@ -123,12 +182,11 @@
             placeholder="Filter by school..."
             value="{{ school_filter }}"
         >
-        <button type="submit">
+        <button type="submit" class="btn btn-primary">
             Search
         </button>
     </form>
 </div>
-
 
 <div class="student-db">
     <div class="container">
@@ -137,7 +195,7 @@
             <div class="student-card">
                 <div class="student-image">
                     {% if student.photo %}
-                        <img src="{{ student.photo }}" alt="{{ student.name }}">
+                        <img src="{{ student.photo.url }}" alt="{{ student.name }}">
                     {% else %}
                         NO<br>IMAGE
                     {% endif %}
@@ -155,6 +213,16 @@
                         <span class="label">School / Escuela :</span>
                         {{ student.school }}
                     </div>
+
+                    {% if request.user.is_staff or request.user.is_superuser %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="student_name" value="{{ student.name }}">
+                        <button type="submit" name="action" value="delete" class="btn btn-danger">
+                            Remove Student
+                        </button>   
+                    </form>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}
