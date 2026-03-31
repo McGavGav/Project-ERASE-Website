@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Events Calendar{% endblock %}
+{% block title %}{% trans "Events Calendar" %}{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -112,15 +113,15 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Events Calendar</h1>
+    <h1>{% trans "Events Calendar" %}</h1>
 </div>
 
 <div class="calendar-container">
     <div class="calendar-header">
         <h2>{{ month_name }} {{ current_year }}</h2>
         <div class="month-buttons">
-            <button onclick="window.location.href='?month={{ prev_month }}&year={{ prev_year }}'">Previous</button>
-            <button onclick="window.location.href='?month={{ next_month }}&year={{ next_year }}'">Next</button>
+            <button onclick="window.location.href='?month={{ prev_month }}&year={{ prev_year }}'">{% trans "Previous" %}</button>
+            <button onclick="window.location.href='?month={{ next_month }}&year={{ next_year }}'">{% trans "Next" %}</button>
         </div>
     </div>
 

@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}About - Project ERASE{% endblock %}
+{% block title %}{% trans "About" %} - Project ERASE{% endblock %}
     
 {% block extra_styles %}
 <style>
     .quote {
-        color: #0283FF; /*Overrides quote color for local page*/
+        color: #0283FF;
     }
 </style>
 {% endblock %}
@@ -13,11 +14,11 @@
 {% block content %}
     
     <section class="page-header">
-        <h1>About Project ERASE</h1>
+        <h1>{% trans "About Project ERASE" %}</h1>
     </section>
     
     <main class="container">
-        <div class="quote">A child's access to education shouldn't depend on where they were born.</div>
-    <main>
+        <div class="quote">{% trans "A child's access to education shouldn't depend on where they were born." %}</div>
+    </main>
     
 {% endblock %}

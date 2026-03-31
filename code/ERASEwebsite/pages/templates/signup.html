@@ -1,19 +1,20 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Sign Up - Project ERASE{% endblock %}
+{% block title %}{% trans "Sign Up" %} - Project ERASE{% endblock %}
     
 {% block content %}
 
     <section class="hero">
         <div class="container">
-            <h1>Create an Account</h1>
+            <h1>{% trans "Create an Account" %}</h1>
         </div>
     </section>
 
     <main class="container">
         <div class="content">
             <div style="max-width: 400px; margin: 0 auto; padding: 2rem; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                <h2 style="text-align: center; margin-bottom: 1.5rem;">Sign Up</h2>
+                <h2 style="text-align: center; margin-bottom: 1.5rem;">{% trans "Sign Up" %}</h2>
 
                 {% if form.non_field_errors %}
                     <div style="background-color: #f8d7da; color: #721c24; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
@@ -24,7 +25,7 @@
                 <form method="post" novalidate>
                     {% csrf_token %}
                     <div style="margin-bottom: 1.5rem;">
-                        <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Username</label>
+                        <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{% trans "Username" %}</label>
                         {{ form.username }}
                         <style>
                             input[name="{{ form.username.html_name }}"] {
@@ -40,7 +41,7 @@
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <label for="{{ form.password1.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Password</label>
+                        <label for="{{ form.password1.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{% trans "Password" %}</label>
                         {{ form.password1 }}
                         <style>
                             input[name="{{ form.password1.html_name }}"] {
@@ -56,7 +57,7 @@
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <label for="{{ form.password2.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Confirm Password</label>
+                        <label for="{{ form.password2.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{% trans "Confirm Password" %}</label>
                         {{ form.password2 }}
                         <style>
                             input[name="{{ form.password2.html_name }}"] {
@@ -71,11 +72,11 @@
                         {% endif %}
                     </div>
 
-                    <button type="submit" class="btn" style="width: 100%; text-align: center; margin: 0;">Sign Up</button>
+                    <button type="submit" class="btn" style="width: 100%; text-align: center; margin: 0;">{% trans "Sign Up" %}</button>
                 </form>
 
                 <p style="text-align: center; margin-top: 1rem;">
-                    Already have an account? <a href="{% url 'pages:login' %}">Sign in here</a>.
+                    {% trans "Already have an account?" %} <a href="{% url 'pages:login' %}">{% trans "Sign in here" %}</a>.
                 </p>
             </div>
         </div>

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Manage Users - Project ERASE{% endblock %}
+{% block title %}{% trans "Manage Users" %} - Project ERASE{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -98,24 +99,24 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Manage Users</h1>
+    <h1>{% trans "Manage Users" %}</h1>
 </div>
 
 <main class="container">
     <div class="content">
         <div class="page-note">
-            As the <strong>Master Account</strong>, you can grant or revoke <strong>Admin</strong> privileges for any user below.
-            Admin users gain access to Admin privileges and can see user information.
+            {% blocktrans %}As the <strong>Master Account</strong>, you can grant or revoke <strong>Admin</strong> privileges for any user below.{% endblocktrans %}
+            {% trans "Admin users gain access to Admin privileges and can see user information." %}
         </div>
 
         {% if users %}
         <table class="manage-users-table">
             <thead>
                 <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Action</th>
+                    <th>{% trans "Username" %}</th>
+                    <th>{% trans "Email" %}</th>
+                    <th>{% trans "Role" %}</th>
+                    <th>{% trans "Action" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -125,9 +126,9 @@
                     <td>{{ u.email|default:"—" }}</td>
                     <td>
                         {% if u.is_staff %}
-                            <span class="badge badge-admin">Admin</span>
+                            <span class="badge badge-admin">{% trans "Admin" %}</span>
                         {% else %}
-                            <span class="badge badge-normal">Normal</span>
+                            <span class="badge badge-normal">{% trans "Normal" %}</span>
                         {% endif %}
                     </td>
                     <td>
@@ -137,8 +138,8 @@
                                 <input type="hidden" name="user_id" value="{{ u.pk }}">
                                 <input type="hidden" name="action" value="revoke">
                                 <button type="submit" class="btn-revoke"
-                                    onclick="return confirm('Revoke admin privileges from {{ u.username }}?')">
-                                    Revoke Admin
+                                    onclick="return confirm('{% trans "Revoke admin privileges from" %} {{ u.username }}?')">
+                                    {% trans "Revoke Admin" %}
                                 </button>
                             </form>
                         {% else %}
@@ -147,8 +148,8 @@
                                 <input type="hidden" name="user_id" value="{{ u.pk }}">
                                 <input type="hidden" name="action" value="grant">
                                 <button type="submit" class="btn-grant"
-                                    onclick="return confirm('Grant admin privileges to {{ u.username }}?')">
-                                    Grant Admin
+                                    onclick="return confirm('{% trans "Grant admin privileges to" %} {{ u.username }}?')">
+                                    {% trans "Grant Admin" %}
                                 </button>
                             </form>
                         {% endif %}
@@ -158,7 +159,7 @@
             </tbody>
         </table>
         {% else %}
-            <p>No other users found.</p>
+            <p>{% trans "No other users found." %}</p>
         {% endif %}
     </div>
 </main>

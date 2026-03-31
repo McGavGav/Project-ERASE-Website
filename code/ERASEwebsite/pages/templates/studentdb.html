@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Student Database{% endblock %}
+{% block title %}{% trans "Student Database" %}{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -92,7 +93,7 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Student Database</h1>
+    <h1>{% trans "Student Database" %}</h1>
 </div>
 
 <div class="search-bar">
@@ -100,11 +101,11 @@
         <input
             type="text"
             name="search"
-            placeholder="Search by name..."
+            placeholder="{% trans "Search by name..." %}"
             value="{{ search_query }}"
         >
         <select name="gender">
-            <option value="">All Genders</option>
+            <option value="">{% trans "All Genders" %}</option>
             <option value="Male"
                 {% if gender_filter == "Male" %}selected{% endif %}
             >
@@ -120,11 +121,11 @@
         <input
             type="text"
             name="school"
-            placeholder="Filter by school..."
+            placeholder="{% trans "Filter by school..." %}"
             value="{{ school_filter }}"
         >
         <button type="submit">
-            Search
+            {% trans "Search" %}
         </button>
     </form>
 </div>
@@ -139,20 +140,20 @@
                     {% if student.photo %}
                         <img src="{{ student.photo }}" alt="{{ student.name }}">
                     {% else %}
-                        NO<br>IMAGE
+                        {% trans "NO IMAGE" %}
                     {% endif %}
                 </div>
                 <div class="student-details">
                     <div>
-                        <span class="label">Name / Nombre :</span>
+                        <span class="label">{% trans "Name" %} :</span>
                         {{ student.name }}
                     </div>
                     <div>
-                        <span class="label">Gender / Genero :</span>
+                        <span class="label">{% trans "Gender" %} :</span>
                         {{ student.gender }}
                     </div>
                     <div>
-                        <span class="label">School / Escuela :</span>
+                        <span class="label">{% trans "School" %} :</span>
                         {{ student.school }}
                     </div>
                 </div>
