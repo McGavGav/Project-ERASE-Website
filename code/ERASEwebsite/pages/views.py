@@ -106,9 +106,12 @@ def studentdb(request):
             )
 
         elif action == "delete":
-            Student.objects.filter(
+            student = Student.objects.filter(
                 name=request.POST.get("student_name")
-            ).delete()
+            )
+
+            for s in student:
+                s.delete()
 
         return redirect("pages:studentdb")
 

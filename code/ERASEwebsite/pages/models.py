@@ -1,4 +1,5 @@
 from django.db import models
+import os
 
 class StudentQuerySet(models.QuerySet):
     def search(self, query):
@@ -40,3 +41,8 @@ class Student(models.Model):
 
     def __str__(self):
         return self.name
+    
+    def delete(self, *args, **kwargs):
+        if self.photo and os.path.isfile(self.photo.path):
+            os.remove(self.photo.path)
+        super().delete(*args, **kwargs)
