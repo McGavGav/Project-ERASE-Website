@@ -1,21 +1,22 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Home - Project ERASE{% endblock %}
+{% block title %}{% trans "Home" %} - Project ERASE{% endblock %}
     
 {% block content %}
     <section class="page-header">
         <div class="container">
-            <h1>Welcome to Project ERASE</h1>
-            <p class="quote">Together we can ERASE educational disparity, one eraser at a time</p>
+            <h1>{% trans "Welcome to Project ERASE" %}</h1>
+            <p class="quote">{% trans "Together we can ERASE educational disparity, one eraser at a time" %}</p>
         </div>
     </section>
     
     <main class="container">
         <section class="content">
-            <h2>About This Project</h2>
-            <p>Welcome to the Project ERASE website. </p>
+            <h2>{% trans "About This Project" %}</h2>
+            <p>{% trans "Welcome to the Project ERASE website." %}</p>
             <p style="margin-top: 1rem;">
-                <a href="{% url 'pages:about' %}" class="btn">Learn More</a>
+                <a href="{% url 'pages:about' %}" class="btn">{% trans "Learn More" %}</a>
             </p>
         </section>
     </main> 

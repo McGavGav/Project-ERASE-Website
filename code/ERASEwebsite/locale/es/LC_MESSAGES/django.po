@@ -1,0 +1,229 @@
+﻿msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "English"
+msgstr "Inglés"
+
+msgid "Spanish"
+msgstr "Español"
+
+# Navigation
+msgid "Home"
+msgstr "Inicio"
+
+msgid "About"
+msgstr "Sobre Nosotros"
+
+msgid "Contact"
+msgstr "Contacto"
+
+msgid "Map"
+msgstr "Mapa"
+
+msgid "Events"
+msgstr "Eventos"
+
+msgid "Student Database"
+msgstr "Base de Datos de Estudiantes"
+
+msgid "Logout"
+msgstr "Cerrar Sesión"
+
+msgid "Manage Users"
+msgstr "Gestionar Usuarios"
+
+msgid "Admin Panel"
+msgstr "Panel de Administración"
+
+msgid "Login"
+msgstr "Iniciar Sesión"
+
+# Home page
+msgid "Welcome to Project ERASE"
+msgstr "Bienvenido al Proyecto ERASE"
+
+msgid "Together we can ERASE educational disparity, one eraser at a time"
+msgstr "Juntos podemos BORRAR la desigualdad educativa, un borrador a la vez"
+
+msgid "About This Project"
+msgstr "Sobre Este Proyecto"
+
+msgid "Welcome to the Project ERASE website."
+msgstr "Bienvenido al sitio web del Proyecto ERASE."
+
+msgid "Learn More"
+msgstr "Saber Más"
+
+# About page
+msgid "About Project ERASE"
+msgstr "Sobre el Proyecto ERASE"
+
+msgid "A child's access to education shouldn't depend on where they were born."
+msgstr "El acceso de un niño a la educación no debería depender de dónde nació."
+
+# Contact page
+msgid "Contact Us"
+msgstr "Contáctenos"
+
+# Login page
+msgid "Sign In"
+msgstr "Iniciar Sesión"
+
+msgid "Username"
+msgstr "Nombre de usuario"
+
+msgid "Password"
+msgstr "Contraseña"
+
+msgid "Don't have an account?"
+msgstr "¿No tienes una cuenta?"
+
+msgid "Sign up here"
+msgstr "Regístrate aquí"
+
+# Signup page
+msgid "Sign Up"
+msgstr "Registrarse"
+
+msgid "Create an Account"
+msgstr "Crear una Cuenta"
+
+msgid "Confirm Password"
+msgstr "Confirmar Contraseña"
+
+msgid "Already have an account?"
+msgstr "¿Ya tienes una cuenta?"
+
+msgid "Sign in here"
+msgstr "Inicia sesión aquí"
+
+# Student Database
+msgid "Search by name..."
+msgstr "Buscar por nombre..."
+
+msgid "All Genders"
+msgstr "Todos los géneros"
+
+msgid "Male"
+msgstr "Masculino"
+
+msgid "Female"
+msgstr "Femenino"
+
+msgid "Filter by school..."
+msgstr "Filtrar por escuela..."
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "NO IMAGE"
+msgstr "SIN IMAGEN"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Gender"
+msgstr "Género"
+
+msgid "School"
+msgstr "Escuela"
+
+# Manage Users
+msgid "As the <strong>Master Account</strong>, you can grant or revoke <strong>Admin</strong> privileges for any user below."
+msgstr "Como la <strong>Cuenta Maestra</strong>, puede otorgar o revocar privilegios de <strong>Administrador</strong> para cualquier usuario a continuación."
+
+msgid "Admin users gain access to Admin privileges and can see user information."
+msgstr "Los usuarios Administradores obtienen acceso a privilegios de Administrador y pueden ver la información de los usuarios."
+
+msgid "Email"
+msgstr "Correo electrónico"
+
+msgid "Role"
+msgstr "Rol"
+
+msgid "Action"
+msgstr "Acción"
+
+msgid "Admin"
+msgstr "Administrador"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Revoke Admin"
+msgstr "Revocar Administrador"
+
+msgid "Grant Admin"
+msgstr "Otorgar Administrador"
+
+msgid "Revoke admin privileges from"
+msgstr "Revocar privilegios de administrador de"
+
+msgid "Grant admin privileges to"
+msgstr "Otorgar privilegios de administrador a"
+
+msgid "No other users found."
+msgstr "No se encontraron otros usuarios."
+
+# Calendar
+msgid "Events Calendar"
+msgstr "Calendario de Eventos"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Siguiente"
+
+# Shipment Map
+msgid "Project ERASE Interactive Map"
+msgstr "Mapa Interactivo del Proyecto ERASE"
+
+msgid "Project ERASE Interactive Map Prototype"
+msgstr "Prototipo del Mapa Interactivo del Proyecto ERASE"
+
+msgid "Total Transit Time:"
+msgstr "Tiempo Total de Tránsito:"
+
+msgid "days"
+msgstr "días"
+
+msgid "hours"
+msgstr "horas"
+
+msgid "minutes"
+msgstr "minutos"
+
+msgid "seconds"
+msgstr "segundos"
+
+msgid "Start"
+msgstr "Iniciar"
+
+msgid "Pause"
+msgstr "Pausar"
+
+msgid "Reset"
+msgstr "Restablecer"
+
+msgid "Status:"
+msgstr "Estado:"
+
+msgid "ETA:"
+msgstr "ETA:"
+
+msgid "Elapsed Time:"
+msgstr "Tiempo Transcurrido:"
+
+msgid "Progress:"
+msgstr "Progreso:"
+
+msgid "Distance Traveled:"
+msgstr "Distancia Recorrida:"
+
+msgid "Distance Remaining:"
+msgstr "Distancia Restante:"
