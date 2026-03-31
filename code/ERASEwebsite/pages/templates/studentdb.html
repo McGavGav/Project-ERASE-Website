@@ -147,11 +147,12 @@
 
 {% if request.user.is_staff or request.user.is_superuser %}
 <div class="admin-form">
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <input type="text" name="name" placeholder="Name" required>
         <input type="text" name="gender" placeholder="Gender" required>
         <input type="text" name="school" placeholder="School" required>
+        <input type="file" name="photo" accept="image/*">
         <button type="submit" name="action" value="add" class="btn btn-primary">
             Add Student
         </button>

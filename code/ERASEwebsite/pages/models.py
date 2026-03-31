@@ -34,7 +34,7 @@ class Student(models.Model):
     name = models.CharField(max_length=100)
     gender = models.CharField(max_length=10)
     school = models.CharField(max_length=200)
-    # add field for student photo later
+    photo = models.ImageField(upload_to='students', blank=True, null=True)
 
     objects = StudentManager() 
 

@@ -101,7 +101,8 @@ def studentdb(request):
             Student.objects.create(
                 name=request.POST.get("name"),
                 gender=request.POST.get("gender"),
-                school=request.POST.get("school")
+                school=request.POST.get("school"),
+                photo=request.FILES.get("photo")
             )
 
         elif action == "delete":
