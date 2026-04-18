@@ -15,4 +15,8 @@ urlpatterns = [
     path('shipment-map/', views.shipment_map, name='shipment_map'),
     path('studentdb/', views.studentdb, name='studentdb'),
     path('manage-users/', views.manage_users, name='manage_users'),
+    path('account/', views.account, name='account'),
+    path('account/delete/', views.delete_account, name='delete_account'),
+    path('admin-panel/', views.custom_admin, name='custom_admin'),
+    path('reports/', views.reports, name='reports'),
 ]

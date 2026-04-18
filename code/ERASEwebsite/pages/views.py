@@ -160,3 +160,63 @@ def manage_users(request):
 
 def shipment_map(request):
     return render(request, "shipment_map.html")
+
+@login_required
+def custom_admin(request):
+    """Custom admin dashboard — accessible to staff and superusers only."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+
+    total_users = User.objects.count()
+    staff_count = User.objects.filter(is_staff=True, is_superuser=False).count()
+    superuser_count = User.objects.filter(is_superuser=True).count()
+
+    context = {
+        'total_users': total_users,
+        'staff_count': staff_count,
+        'superuser_count': superuser_count,
+    }
+    return render(request, 'custom_admin.html', context)
+
+
+@login_required
+def reports(request):
+    """Placeholder reports view for admins."""
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+
+    context = {}
+    return render(request, 'reports.html', context)
+
+@login_required
+def account(request):
+    """Display the current user's account details."""
+    user = request.user
+    groups = user.groups.values_list('name', flat=True)
+    if user.is_superuser:
+        role = 'Master'
+    elif user.is_staff:
+        role = 'Admin'
+    elif groups:
+        role = ', '.join(groups)
+    else:
+        role = 'User'
+    context = {
+        'role': role,
+    }
+    return render(request, 'account.html', context)
+
+@login_required
+def delete_account(request):
+    """Allow a non-superuser to delete their own account."""
+    if request.user.is_superuser:
+        raise PermissionDenied
+
+    if request.method == 'POST':
+        user = request.user
+        from django.contrib.auth import logout
+        logout(request)
+        user.delete()
+        return redirect('pages:home')
+
+    return redirect('pages:account')
