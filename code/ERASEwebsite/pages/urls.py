@@ -15,4 +15,12 @@ urlpatterns = [
     path('shipment-map/', views.shipment_map, name='shipment_map'),
     path('studentdb/', views.studentdb, name='studentdb'),
     path('manage-users/', views.manage_users, name='manage_users'),
+    path('account/', views.account, name='account'),
+    path('account/delete/', views.delete_account, name='delete_account'),
+    path('admin-panel/', views.custom_admin, name='custom_admin'),
+    path('reports/', views.reports, name='reports'),
+    path('reports/delete-funding/<int:pk>/',  views.delete_funding,  name='delete_funding'),
+    path('reports/delete-workshop/<int:pk>/', views.delete_workshop, name='delete_workshop'),
+    path('reports/delete-student/<int:pk>/',  views.delete_student,  name='delete_student'),
+    path('reports/delete-social/<int:pk>/',   views.delete_social,   name='delete_social'),
 ]
