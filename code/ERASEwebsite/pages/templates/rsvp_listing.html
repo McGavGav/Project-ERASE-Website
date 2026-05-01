@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "RSVP Listing" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .rsvp-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .event-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 1.25rem 1.75rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .event-card:hover {
+        box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+        transform: translateY(-2px);
+    }
+
+    .event-card-info h3 {
+        color: #1368B8;
+        margin-bottom: 0.25rem;
+    }
+
+    .event-card-info .event-meta {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .rsvp-badge {
+        background: #1368B8;
+        color: white;
+        border-radius: 20px;
+        padding: 0.3rem 0.9rem;
+        font-weight: bold;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #888;
+        padding: 3rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% trans "RSVP Listing" %}</h1>
+</div>
+
+<div class="rsvp-container">
+    {% if events %}
+        {% for event in events %}
+        <a href="{% url 'pages:rsvp_detail' event.pk %}" class="event-card">
+            <div class="event-card-info">
+                <h3>{{ event.title }}</h3>
+                <div class="event-meta">{{ event.date }} &mdash; {{ event.time }}</div>
+            </div>
+            <div class="rsvp-badge">{{ event.rsvp_count }} RSVPs</div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">{% trans "No events with RSVP enabled." %}</div>
+        {% endif %}
+</div>
+{% endblock %}
