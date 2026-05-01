@@ -22,6 +22,7 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from event_calendar.calendar_maker import get_calendar_html
+from .models import Student
 
 def home(request):
     """Render the homepage"""
@@ -171,40 +172,49 @@ def rsvp_detail(request, event_id):
     return render(request, 'rsvp_detail.html', context)
 
 def studentdb(request):
-    # temp data to test database view.
-    students = [
-        {"name": "Anne", "gender": "Female", "school": "Washington State University", "photo": None},
-        {"name": "Tim", "gender": "Male", "school": "Lincoln Primary", "photo": None},
-        {"name": "Emma", "gender": "Female", "school": "Washington Middle School", "photo": None},
-        {"name": "Daniel", "gender": "Male", "school": "Franklin High", "photo": None},
-    ]
-    
-    search_query = request.GET.get("search", "")
-    gender_filter = request.GET.get("gender", "")
-    school_filter = request.GET.get("school", "")
 
-    filtered_students = []
+    # admin/supers can add and delete students
+    if request.method == "POST" and (request.user.is_staff or request.user.is_superuser):
+        action = request.POST.get("action")
 
-    for student in students:
-        if search_query and search_query.lower() not in student["name"].lower():
-            continue
+        if action == "add":
+            Student.objects.create(
+                name=request.POST.get("name"),
+                gender=request.POST.get("gender"),
+                school=request.POST.get("school"),
+                photo=request.FILES.get("photo")
+            )
 
-        if gender_filter and student["gender"] != gender_filter:
-            continue
+        elif action == "bulk_add":
+            count_str = request.POST.get("bulk_count", "0")
+            count = int(count_str) if count_str.isdigit() else 0
 
-        if school_filter and school_filter.lower() not in student["school"].lower():
-            continue
+            for i in range(count):
+                name = request.POST.get(f"name_{i}")
+                gender = request.POST.get(f"gender_{i}")
+                school = request.POST.get(f"school_{i}")
+                photo = request.FILES.get(f"photo_{i}")
 
-        filtered_students.append(student)
+                if name:
+                    Student.objects.create(
+                        name=name,
+                        gender=gender,
+                        school=school,
+                        photo=photo
+                    )
 
-    context = {
-        "students": filtered_students,
-        "search_query": search_query,
-        "gender_filter": gender_filter,
-        "school_filter": school_filter
-    }
+        elif action == "delete":
+            Student.objects.filter(
+                name=request.POST.get("student_name")
+            ).delete()
 
-    return render(request, "studentdb.html", context)
+        return redirect("pages:studentdb")
+
+    students = Student.objects.all()
+
+    return render(request, "studentdb.html", {
+        "students": students
+    })
 
 class CustomLoginView(LoginView):
     """Custom login view"""

@@ -1,5 +1,7 @@
 from django.urls import path
 from django.contrib.auth.views import LogoutView
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 app_name = 'pages'
@@ -28,3 +30,6 @@ urlpatterns = [
     path('reports/delete-student/<int:pk>/',  views.delete_student,  name='delete_student'),
     path('reports/delete-social/<int:pk>/',   views.delete_social,   name='delete_social'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
