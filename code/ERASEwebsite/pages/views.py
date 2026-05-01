@@ -105,27 +105,35 @@ def studentdb(request):
                 photo=request.FILES.get("photo")
             )
 
-        elif action == "delete":
-            student = Student.objects.filter(
-                name=request.POST.get("student_name")
-            )
+        elif action == "bulk_add":
+            count_str = request.POST.get("bulk_count", "0")
+            count = int(count_str) if count_str.isdigit() else 0
 
-            for s in student:
-                s.delete()
+            for i in range(count):
+                name = request.POST.get(f"name_{i}")
+                gender = request.POST.get(f"gender_{i}")
+                school = request.POST.get(f"school_{i}")
+                photo = request.FILES.get(f"photo_{i}")
+
+                if name:
+                    Student.objects.create(
+                        name=name,
+                        gender=gender,
+                        school=school,
+                        photo=photo
+                    )
+
+        elif action == "delete":
+            Student.objects.filter(
+                name=request.POST.get("student_name")
+            ).delete()
 
         return redirect("pages:studentdb")
 
-    students = Student.objects.apply_filters(
-        search=request.GET.get("search"),
-        gender=request.GET.get("gender"),
-        school=request.GET.get("school")
-    )
+    students = Student.objects.all()
 
     return render(request, "studentdb.html", {
-        "students": students,
-        "search_query": request.GET.get("search", ""),
-        "gender_filter": request.GET.get("gender", ""),
-        "school_filter": request.GET.get("school", "")
+        "students": students
     })
 
 class CustomLoginView(LoginView):
