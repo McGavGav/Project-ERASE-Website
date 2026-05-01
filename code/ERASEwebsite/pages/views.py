@@ -62,7 +62,12 @@ def calendar(request):
         current_month = now.month
         current_year = now.year
     
-    calendar_html = get_calendar_html(current_year, current_month)
+    month_events = Event.objects.filter(date__year=current_year, date__month=current_month)
+    events_by_date = {}
+    for event in month_events:
+        events_by_date.setdefault(event.date, []).append(event)
+    
+    calendar_html = get_calendar_html(current_year, current_month, events_by_date)
 
     if current_month == 1:
         prev_month = 12
