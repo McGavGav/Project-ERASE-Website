@@ -1,5 +1,5 @@
-from calendar import month_name
 from datetime import datetime
+from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.views import LoginView, LogoutView
@@ -75,13 +75,11 @@ def calendar(request):
         next_month = current_month + 1
         next_year = current_year
 
-    calendar_month = month_name[current_month]
-
     context = {
         'calendar_html': calendar_html,
         'current_month': current_month,
         'current_year': current_year,
-        'month_name': calendar_month,
+        'display_date': date(current_year, current_month, 1),
         'prev_month': prev_month,
         'prev_year': prev_year,
         'next_month': next_month,

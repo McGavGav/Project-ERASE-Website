@@ -118,8 +118,11 @@
 
 <div class="calendar-container">
     <div class="calendar-header">
-        <h2>{{ month_name }} {{ current_year }}</h2>
+        <h2>{{ display_date|date:"F Y" }}</h2>
         <div class="month-buttons">
+            {% if user.is_staff or user.is_superuser %}
+                <button>{% trans "Add Event" %}</button>
+            {% endif %}
             <button onclick="window.location.href='?month={{ prev_month }}&year={{ prev_year }}'">{% trans "Previous" %}</button>
             <button onclick="window.location.href='?month={{ next_month }}&year={{ next_year }}'">{% trans "Next" %}</button>
         </div>
