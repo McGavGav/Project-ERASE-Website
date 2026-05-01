@@ -1,5 +1,7 @@
-from calendar import month_name
 from datetime import datetime
+from datetime import date
+from django.db import models
+from django.db.models import Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
@@ -12,6 +14,9 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
 from .models import FundingEntry, WorkshopAttendance, StudentSupport, SocialMediaMetric
 from .forms import FundingEntryForm, WorkshopAttendanceForm, StudentSupportForm, SocialMediaMetricForm, AccountEmailForm
+from django.urls import reverse
+from event_calendar.models import Event, RSVP
+from event_calendar.forms import EventForm
 import sys
 import os
 
@@ -63,7 +68,12 @@ def calendar(request):
         current_month = now.month
         current_year = now.year
     
-    calendar_html = get_calendar_html(current_year, current_month)
+    month_events = Event.objects.filter(date__year=current_year, date__month=current_month)
+    events_by_date = {}
+    for event in month_events:
+        events_by_date.setdefault(event.date, []).append(event)
+    
+    calendar_html = get_calendar_html(current_year, current_month, events_by_date)
 
     if current_month == 1:
         prev_month = 12
@@ -79,22 +89,86 @@ def calendar(request):
         next_month = current_month + 1
         next_year = current_year
 
-    calendar_month = month_name[current_month]
+    event_form = EventForm()
+    event_added = request.GET.get('event_added') == '1'
+
+    rsvped_ids = set()
+    if request.user.is_authenticated:
+        rsvped_ids = set(
+            RSVP.objects.filter(user=request.user, event__in=month_events)
+                .values_list('event_id', flat=True)
+        )
 
     context = {
         'calendar_html': calendar_html,
         'current_month': current_month,
         'current_year': current_year,
-        'month_name': calendar_month,
+        'display_date': date(current_year, current_month, 1),
         'prev_month': prev_month,
         'prev_year': prev_year,
         'next_month': next_month,
         'next_year': next_year,
+        'event_form': event_form,
+        'event_added': event_added,
+        'rsvped_ids': list(rsvped_ids),
     }
 
     return render(request, 'calendar.html', context)
 
+@login_required
+def add_event(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    
+    if request.method == 'POST':
+        form = EventForm(request.POST)
 
+        if form.is_valid():
+            form.save()
+            month = form.cleaned_data['date'].month
+            year = form.cleaned_data['date'].year
+
+            return redirect(f"{reverse('pages:calendar')}?month={month}&year={year}&event_added=1")
+    
+    return redirect('pages:calendar')
+
+@login_required
+def rsvp_event(request, event_id):
+    if request.method != 'POST':
+        return redirect('pages:calendar')
+    
+    event = get_object_or_404(Event, pk=event_id)
+
+    if not event.hasRSVP:
+        raise PermissionDenied
+    
+    rsvp, created = RSVP.objects.get_or_create(user=request.user, event=event)
+    if not created:
+        rsvp.delete()
+
+    return redirect(f"{reverse('pages:calendar')}?month={event.date.month}&year={event.date.year}")
+
+@login_required
+def rsvp_listing(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    
+    events = Event.objects.filter(hasRSVP=True).order_by('date', 'time')
+    events = events.annotate(rsvp_count=models.Count('rsvps'))
+    context = {'events': events}
+
+    return render(request, 'rsvp_listing.html', context)
+
+@login_required
+def rsvp_detail(request, event_id):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    
+    event = get_object_or_404(Event, pk=event_id, hasRSVP=True)
+    rsvps = event.rsvps.select_related('user').order_by('reserved_at')
+    context = {'event': event, 'rsvps': rsvps}
+
+    return render(request, 'rsvp_detail.html', context)
 
 def studentdb(request):
     # temp data to test database view.
