@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Project ERASE Interactive Map{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Project ERASE Interactive Map" %}{% endblock %}
 
 {% block extra_styles %}
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -25,52 +26,52 @@
 
 <div class="map-wrapper">
 
-<h2>Project ERASE Interactive Map Prototype</h2>
+<h2>{% trans "Project ERASE Interactive Map Prototype" %}</h2>
 
 <!-- UI controls for transit timing and playback actions -->
 <div class="controls">
 
-<label>Total Transit Time:</label>
+<label>{% trans "Total Transit Time:" %}</label>
 
-<input id="daysInput" type="number" value="0" style="width:60px"> days
-<input id="hoursInput" type="number" value="0" style="width:60px"> hours
-<input id="minutesInput" type="number" value="1" style="width:60px"> minutes
-<input id="secondsInput" type="number" value="0" style="width:60px"> seconds
+<input id="daysInput" type="number" value="0" style="width:60px">{% trans "days" %}
+<input id="hoursInput" type="number" value="0" style="width:60px">{% trans "hours" %}
+<input id="minutesInput" type="number" value="1" style="width:60px">{% trans "minutes" %}
+<input id="secondsInput" type="number" value="0" style="width:60px">{% trans "seconds" %}
 
-<button onclick="startShipment()">Start</button>
-<button onclick="pauseShipment()">Pause</button>
-<button onclick="resetShipment()">Reset</button>
+<button onclick="startShipment()">{% trans "Start" %}</button>
+<button onclick="pauseShipment()">{% trans "Pause" %}</button>
+<button onclick="resetShipment()">{% trans "Reset" %}</button>
 
 </div>
 
 <div style="margin-top:10px;">
 
-<strong>Status:</strong>
+<strong>{% trans "Status:" %}</strong>
 <span id="status">Waiting</span>
 
 &nbsp;&nbsp;
 
-<strong>ETA:</strong>
+<strong>{% trans "ETA:" %}</strong>
 <span id="eta">--</span>
 
 &nbsp;&nbsp;
 
-<strong>Elapsed Time:</strong>
+<strong>{% trans "Elapsed Time:" %}</strong>
 <span id="timer">0 s</span>
 
 &nbsp;&nbsp;
 
-<strong>Progress:</strong>
+<strong>{% trans "Progress:" %}</strong>
 <span id="progress">0%</span>
 
 &nbsp;&nbsp;
 
-<strong>Distance Traveled:</strong>
+<strong>{% trans "Distance Traveled:" %}</strong>
 <span id="distance">0 miles</span>
 
 &nbsp;&nbsp;
 
-<strong>Distance Remaining:</strong>
+<strong>{% trans "Distance Remaining:" %}</strong>
 <span id="remaining">0 miles</span>
 
 </div>

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Student Database{% endblock %}
+{% block title %}{% trans "Student Database" %}{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -177,7 +178,7 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Student Database</h1>
+    <h1>{% trans "Student Database" %}</h1>
 </div>
 
 <div id="cropModal">
@@ -275,6 +276,7 @@
 {% endif %}
 
 <div class="search-bar">
+<<<<<<< student-database
     <form>
         <input type="text" name="search" placeholder="Search by name...">
         <select name="gender">
@@ -283,6 +285,38 @@
             <option value="Female">Female</option>
         </select>
         <input type="text" name="school" placeholder="Filter by school...">
+=======
+    <form method="GET">
+        <input
+            type="text"
+            name="search"
+            placeholder="{% trans "Search by name..." %}"
+            value="{{ search_query }}"
+        >
+        <select name="gender">
+            <option value="">{% trans "All Genders" %}</option>
+            <option value="Male"
+                {% if gender_filter == "Male" %}selected{% endif %}
+            >
+                Male
+            </option>
+
+            <option value="Female"
+                {% if gender_filter == "Female" %}selected{% endif %}
+            >
+                Female
+            </option>
+        </select>
+        <input
+            type="text"
+            name="school"
+            placeholder="{% trans "Filter by school..." %}"
+            value="{{ school_filter }}"
+        >
+        <button type="submit">
+            {% trans "Search" %}
+        </button>
+>>>>>>> main
     </form>
 </div>
 
@@ -295,20 +329,20 @@
                     {% if student.photo %}
                         <img src="{{ student.photo.url }}" alt="{{ student.name }}">
                     {% else %}
-                        NO<br>IMAGE
+                        {% trans "NO IMAGE" %}
                     {% endif %}
                 </div>
                 <div class="student-details">
                     <div>
-                        <span class="label">Name / Nombre :</span>
+                        <span class="label">{% trans "Name" %} :</span>
                         {{ student.name }}
                     </div>
                     <div>
-                        <span class="label">Gender / Genero :</span>
+                        <span class="label">{% trans "Gender" %} :</span>
                         {{ student.gender }}
                     </div>
                     <div>
-                        <span class="label">School / Escuela :</span>
+                        <span class="label">{% trans "School" %} :</span>
                         {{ student.school }}
                     </div>
 

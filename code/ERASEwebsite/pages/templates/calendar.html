@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Events Calendar{% endblock %}
+{% block title %}{% trans "Events Calendar" %}{% endblock %}
 
 {% block extra_styles %}
 <style>
     .calendar-container {
-        max-width: 900px;
+        max-width: 1500px;
         margin: 2rem auto;
         padding: 0 2rem;
     }
@@ -69,7 +70,7 @@
     .calendar-table td {
         border: 1px solid #ddd;
         padding: 1rem;
-        height: 120px;
+        height: 160px;
         vertical-align: top;
         background-color: #f9f9f9;
         position: relative;
@@ -107,23 +108,272 @@
         color: #333;
         margin-bottom: 0.5rem;
     }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-box h3 {
+        color: #1368b8;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+    }
+
+    .modal-box p {
+        margin-bottom: 1rem;
+    }
+
+    .modal-box label {
+        display: block;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 0.25rem;
+    }
+
+    .modal-box input,
+    .modal-box textarea {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font: inherit;
+        margin-bottom: 0.25rem;
+    }
+
+    .modal-box input[type="checkbox"] {
+        width: auto;
+        margin-right: 0.5rem;
+    }
+
+    .modal-box textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .modal-actions .btn-save {
+        background-color: #0283FF;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .modal-actions .btn-save:hover {
+        background-color: #1368B8;
+    }
+
+    .modal-actions .btn-cancel {
+        background: none;
+        border: 2px solid #ccc;
+        color: #555;
+        padding: 0.5rem 1.25rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+
+    .modal-actions .btn-cancel:hover {
+        border-color: #999;
+    }
+
+    #toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: #1368B8;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 6px;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 300;
+        animation: fadeout 0.5s ease 3s forwards;
+    }
+
+    @keyframes fadeout {
+        to { opacity: 0; visibility: hidden; }
+    }
+
+    .event-pill {
+        background-color: #0283FF;
+        color: white;
+        border-radius: 3px;
+        padding: 0.15rem 0.4rem;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .event-pill:hover {
+        background-color: #1368B8;
+    }
+
+    .event-detail-box {
+        max-width: 520px;
+    }
+
+    .event-detail-title {
+        color: #1368B8;
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-detail-time {
+        color: #555;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+
+    .event-detail-description {
+        color: #333;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        white-space: pre-wrap;
+    }
+
+    .event-time {
+        font-weight: bold;
+    }
+
+    .event-title {
+        font-weight: normal;
+    }
+
+    .btn-rsvp {
+        background-color: #0283FF;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-rsvp:hover {
+        background-color: #1368B8;
+    }
+
+    .btn-rsvp.rsvped {
+        background-color: #eb4c4c;
+    }
+
+    .btn-rsvp.rsvped:hover {
+        background-color: #c0392b;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
-    <h1>Events Calendar</h1>
+    <h1>{% trans "Events Calendar" %}</h1>
 </div>
 
 <div class="calendar-container">
     <div class="calendar-header">
-        <h2>{{ month_name }} {{ current_year }}</h2>
+        <h2>{{ display_date|date:"F Y" }}</h2>
         <div class="month-buttons">
-            <button onclick="window.location.href='?month={{ prev_month }}&year={{ prev_year }}'">Previous</button>
-            <button onclick="window.location.href='?month={{ next_month }}&year={{ next_year }}'">Next</button>
+            {% if user.is_staff or user.is_superuser %}
+                <button type="button" onclick="openModal()">
+                    {% trans "Add Event" %}
+                </button>
+            {% endif %}
+            <button
+             type="submit" onclick="window.location.href='?month={{ prev_month }}&year={{ prev_year }}'">
+                {% trans "Previous" %}
+            </button>
+            <button
+             type="submit" onclick="window.location.href='?month={{ next_month }}&year={{ next_year }}'">
+                {% trans "Next" %}
+            </button>
         </div>
     </div>
 
     {{ calendar_html|safe }}
 </div>
+
+{% if user.is_staff or user.is_superuser %}
+<div id="event-modal-overlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>{% trans "Add Event" %}</h3>
+        <form method="post" action="{% url 'pages:add_event' %}">
+            {% csrf_token %}
+            {{ event_form.as_p }}
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn-save">{% trans "Save Event" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% if event_added %}
+<div id="toast">{% trans "Event added successfully!" %}</div>
+{% endif %}
+
+<div id="event-detail-overlay" class="modal-overlay">
+    <div class="modal-box event-detail-box">
+        <h3 id="detail-title" class="event-detail-title"></h3>
+        <div id="detail-time" class="event-detail-time"></div>
+        <p id="detail-description" class="event-detail-description"></p>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" onclick="closeEventDetailModal()">
+                {% trans "Close" %}
+            </button>
+            <form id="rsvp-form" method="post" action="" style="display:none;">
+                {% csrf_token %}
+                <button type="submit" id="rsvp-btn" class="btn-rsvp">{% trans "RSVP" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="rsvped-ids-data">{{ rsvped_ids|safe }}</script>
+<script type="application/json" id="calendar-config">
+    {
+        "isAuthenticated": {{ user.is_authenticated|yesno:"true,false" }},
+        "rsvpUrlTemplate": "{% url 'pages:rsvp_event' event_id=0 %}",
+        "hasAdminModal": {{ user.is_staff|yesno:"true,false" }},
+        "labelRsvp": "{% trans 'RSVP' %}",
+        "labelCancelRsvp": "{% trans 'Cancel RSVP' %}"
+    }
+</script>
+
+{% load static %}
+<script src="{% static 'pages/javascript/calendar.js' %}" defer></script>
 {% endblock %}

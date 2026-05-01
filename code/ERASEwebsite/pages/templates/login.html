@@ -1,13 +1,14 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Login - Project ERASE{% endblock %}
+{% block title %}{% trans "Login" %} - Project ERASE{% endblock %}
     
 {% block content %}
     
     <main class="container">
         <div class="content">
             <div style="max-width: 400px; margin: 0 auto; padding: 2rem; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                <h2 style="text-align: center; margin-bottom: 1.5rem;">Sign In</h2>
+                <h2 style="text-align: center; margin-bottom: 1.5rem;">{% trans "Sign In" %}</h2>
                 
                 {% if form.non_field_errors %}
                     <div style="background-color: #f8d7da; color: #721c24; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
@@ -19,7 +20,7 @@
                     {% csrf_token %}
                     
                     <div style="margin-bottom: 1.5rem;">
-                        <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Username</label>
+                        <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{% trans "Username" %}</label>
                         {{ form.username }}
                         <style>
                             input[name="{{ form.username.html_name }}"] {
@@ -35,7 +36,7 @@
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
-                        <label for="{{ form.password.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">Password</label>
+                        <label for="{{ form.password.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{% trans "Password" %}</label>
                         {{ form.password }}
                         <style>
                             input[name="{{ form.password.html_name }}"] {
@@ -50,15 +51,14 @@
                         {% endif %}
                     </div>
                     
-                    <button type="submit" class="btn" style="width: 100%; text-align: center; margin: 0;">Sign In</button>
+                    <button type="submit" class="btn" style="width: 100%; text-align: center; margin: 0;">{% trans "Sign In" %}</button>
                 </form>
                 
                 <p style="text-align: center; margin-top: 1rem;">
-                    Don't have an account? <a href="{% url 'pages:signup' %}">Sign up here</a>.
+                    {% trans "Don't have an account?" %} <a href="{% url 'pages:signup' %}">{% trans "Sign up here" %}</a>.
                 </p>
             </div>
         </div>
     </main>
     
-   
 {% endblock %}

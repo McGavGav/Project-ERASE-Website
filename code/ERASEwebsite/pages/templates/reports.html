@@ -1,0 +1,766 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Reports" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .report-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 0;
+    }
+
+    .tab-btn {
+        padding: 0.65rem 1.4rem;
+        border: none;
+        background: none;
+        color: #555;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        border-radius: 4px 4px 0 0;
+        transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .tab-btn:hover {
+        color: #1368B8;
+        background: #f0f6ff;
+    }
+
+    .tab-btn.active {
+        color: #1368B8;
+        border-bottom-color: #1368B8;
+        background: #f0f6ff;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .report-section {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .report-section h2 {
+        color: #1368B8;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #eee;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        background: #f7faff;
+        border: 1px solid #dce8fb;
+        border-radius: 8px;
+        padding: 1.2rem 1.5rem;
+        text-align: center;
+    }
+
+    .stat-card .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1368B8;
+        line-height: 1;
+    }
+
+    .stat-card .stat-label {
+        margin-top: 0.4rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+    }
+
+    .report-table th {
+        background: #1368B8;
+        color: #fff;
+        padding: 0.7rem 1rem;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .report-table td {
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid #eee;
+        vertical-align: top;
+    }
+
+    .report-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .report-table tr:hover td {
+        background: #f5f9ff;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #aaa;
+        padding: 2rem 1rem;
+        font-style: italic;
+    }
+
+    .badge-category {
+        display: inline-block;
+        padding: 0.15rem 0.55rem;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: #dce8fb;
+        color: #1368B8;
+    }
+
+    .badge-donation { background: #d4edda; color: #155724; }
+    .badge-grant    { background: #cce5ff; color: #004085; }
+    .badge-other    { background: #e2e3e5; color: #383d41; }
+    .badge-platform { background: #dce8fb; color: #1368B8; }
+
+    .report-filter-bar {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+        align-items: center;
+    }
+
+    .report-filter-bar label {
+        font-size: 0.88rem;
+        color: #555;
+        font-weight: 600;
+    }
+
+    .report-filter-bar input,
+    .report-filter-bar select {
+        padding: 0.4rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    .total-row td {
+        font-weight: bold;
+        background: #f0f6ff;
+        border-top: 2px solid #1368B8;
+    }
+
+    /* --- Admin entry form --- */
+    .add-entry-panel {
+        background: #f7faff;
+        border: 1px dashed #1368B8;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+
+    .add-entry-panel summary {
+        padding: 0.75rem 1.25rem;
+        cursor: pointer;
+        font-weight: 600;
+        color: #1368B8;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .add-entry-panel summary::before {
+        content: '＋';
+        font-size: 1.1rem;
+    }
+
+    .add-entry-panel[open] summary::before {
+        content: '－';
+    }
+
+    .add-entry-panel summary:hover {
+        background: #e8f1fd;
+    }
+
+    .add-entry-form {
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid #dce8fb;
+    }
+
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 180px;
+        min-width: 0;
+    }
+
+    .form-group label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 0.25rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.45rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        width: 100%;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #1368B8;
+        box-shadow: 0 0 0 2px rgba(19,104,184,0.15);
+    }
+
+    .form-group .errorlist {
+        list-style: none;
+        color: #c0392b;
+        font-size: 0.8rem;
+        margin: 0.2rem 0 0;
+        padding: 0;
+    }
+
+    .form-actions {
+        margin-top: 0.5rem;
+    }
+
+    .btn-sm {
+        padding: 0.45rem 1.1rem;
+        font-size: 0.88rem;
+        margin-top: 0;
+    }
+
+    .btn-danger {
+        background: #eb4c4c;
+        color: #fff;
+        border: none;
+        padding: 0.3rem 0.7rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-danger:hover {
+        background: #c0392b;
+    }
+
+    /* Messages */
+    .messages-list {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1rem;
+    }
+
+    .messages-list li {
+        padding: 0.75rem 1.25rem;
+        border-radius: 6px;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .messages-list .success { background: #d4edda; color: #155724; }
+    .messages-list .error   { background: #f8d7da; color: #721c24; }
+    .messages-list .warning { background: #fff3cd; color: #856404; }
+    .messages-list .info    { background: #d1ecf1; color: #0c5460; }
+</style>
+{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>{% trans "Reports" %}</h1>
+    </section>
+
+    <main class="container content">
+
+        {% if messages %}
+        <ul class="messages-list">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Tab Navigation -->
+        <div class="report-tabs">
+            <button class="tab-btn" data-tab="fundraising">{% trans "Fundraising" %}</button>
+            <button class="tab-btn" data-tab="workshops">{% trans "Workshop Attendance" %}</button>
+            <button class="tab-btn" data-tab="students">{% trans "Students Supported" %}</button>
+            <button class="tab-btn" data-tab="social">{% trans "Social Media" %}</button>
+        </div>
+
+        <!-- ===================== FUNDRAISING TAB ===================== -->
+        <div id="tab-fundraising" class="tab-content">
+
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <details class="add-entry-panel" {% if active_tab == 'fundraising' and funding_form.errors %}open{% endif %}>
+                <summary>{% trans "Add Funding Entry" %}</summary>
+                <form class="add-entry-form" method="post" action="{% url 'pages:reports' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="funding">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:0 1 160px;">
+                            <label>{% trans "Date" %} *</label>
+                            {{ funding_form.date }}
+                            {{ funding_form.date.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label>{% trans "Source (donor / grant name)" %} *</label>
+                            {{ funding_form.source }}
+                            {{ funding_form.source.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 150px;">
+                            <label>{% trans "Type" %} *</label>
+                            {{ funding_form.fund_type }}
+                            {{ funding_form.fund_type.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Amount ($)" %} *</label>
+                            {{ funding_form.amount }}
+                            {{ funding_form.amount.errors }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{% trans "Notes" %}</label>
+                            {{ funding_form.notes }}
+                            {{ funding_form.notes.errors }}
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-sm">{% trans "Save Entry" %}</button>
+                    </div>
+                </form>
+            </details>
+            {% endif %}
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number">${{ funding_total }}</div>
+                    <div class="stat-label">{% trans "Total Raised" %} ({{ year_filter|default:"All" }})</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${{ donations_total }}</div>
+                    <div class="stat-label">{% trans "From Donations" %}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${{ grants_total }}</div>
+                    <div class="stat-label">{% trans "From Grants" %}</div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h2>{% trans "Funding Records" %}</h2>
+                <form class="report-filter-bar" method="get">
+                    <input type="hidden" name="tab" value="fundraising">
+                    <label>{% trans "Year:" %}</label>
+                    <select name="year">
+                        {% for yr in funding_years %}
+                        <option value="{{ yr }}" {% if year_filter == yr|stringformat:"s" %}selected{% endif %}>{{ yr }}</option>
+                        {% endfor %}
+                        <option value="" {% if not year_filter %}selected{% endif %}>{% trans "All years" %}</option>
+                    </select>
+                    <label>{% trans "Type:" %}</label>
+                    <select name="fund_type">
+                        <option value="" {% if not type_filter %}selected{% endif %}>{% trans "All" %}</option>
+                        <option value="donation" {% if type_filter == 'donation' %}selected{% endif %}>{% trans "Donation" %}</option>
+                        <option value="grant"    {% if type_filter == 'grant'    %}selected{% endif %}>{% trans "Grant" %}</option>
+                        <option value="other"    {% if type_filter == 'other'    %}selected{% endif %}>{% trans "Other" %}</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm">{% trans "Filter" %}</button>
+                </form>
+
+                {% if funding_entries %}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Source" %}</th>
+                            <th>{% trans "Type" %}</th>
+                            <th>{% trans "Amount" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            {% if request.user.is_staff or request.user.is_superuser %}<th></th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in funding_entries %}
+                        <tr>
+                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.source }}</td>
+                            <td><span class="badge-category badge-{{ entry.fund_type }}">{{ entry.get_fund_type_display }}</span></td>
+                            <td>${{ entry.amount }}</td>
+                            <td>{{ entry.notes|default:"—" }}</td>
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <td>
+                                <form method="post" action="{% url 'pages:delete_funding' entry.pk %}" onsubmit="return confirm('Delete this funding entry?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="3">{% trans "Total" %}</td>
+                            <td>${{ funding_total }}</td>
+                            <td{% if request.user.is_staff or request.user.is_superuser %} colspan="2"{% endif %}></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                {% else %}
+                <p class="empty-state">{% trans "No funding records found." %}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ===================== WORKSHOPS TAB ===================== -->
+        <div id="tab-workshops" class="tab-content">
+
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <details class="add-entry-panel" {% if active_tab == 'workshops' and workshop_form.errors %}open{% endif %}>
+                <summary>{% trans "Log Workshop Attendance" %}</summary>
+                <form class="add-entry-form" method="post" action="{% url 'pages:reports' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="workshop">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{% trans "Workshop Name" %} *</label>
+                            {{ workshop_form.workshop_name }}
+                            {{ workshop_form.workshop_name.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 160px;">
+                            <label>{% trans "Date" %} *</label>
+                            {{ workshop_form.date }}
+                            {{ workshop_form.date.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label>{% trans "Location" %}</label>
+                            {{ workshop_form.location }}
+                            {{ workshop_form.location.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Attendees" %} *</label>
+                            {{ workshop_form.attendee_count }}
+                            {{ workshop_form.attendee_count.errors }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{% trans "Notes" %}</label>
+                            {{ workshop_form.notes }}
+                            {{ workshop_form.notes.errors }}
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-sm">{% trans "Save Record" %}</button>
+                    </div>
+                </form>
+            </details>
+            {% endif %}
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ workshop_count }}</div>
+                    <div class="stat-label">{% trans "Workshops Hosted" %}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_attendees }}</div>
+                    <div class="stat-label">{% trans "Total Attendees" %}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ avg_attendees }}</div>
+                    <div class="stat-label">{% trans "Avg. Attendees / Workshop" %}</div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h2>{% trans "Workshop Records" %}</h2>
+                {% if workshops %}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Workshop" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Location" %}</th>
+                            <th>{% trans "Attendees" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            {% if request.user.is_staff or request.user.is_superuser %}<th></th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in workshops %}
+                        <tr>
+                            <td>{{ w.workshop_name }}</td>
+                            <td>{{ w.date }}</td>
+                            <td>{{ w.location|default:"—" }}</td>
+                            <td>{{ w.attendee_count }}</td>
+                            <td>{{ w.notes|default:"—" }}</td>
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <td>
+                                <form method="post" action="{% url 'pages:delete_workshop' w.pk %}" onsubmit="return confirm('Delete this workshop record?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="empty-state">{% trans "No workshop records found." %}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ===================== STUDENTS SUPPORTED TAB ===================== -->
+        <div id="tab-students" class="tab-content">
+
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <details class="add-entry-panel" {% if active_tab == 'students' and student_form.errors %}open{% endif %}>
+                <summary>{% trans "Add Student Support Entry" %}</summary>
+                <form class="add-entry-form" method="post" action="{% url 'pages:reports' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="student">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Year" %} *</label>
+                            {{ student_form.year }}
+                            {{ student_form.year.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 180px;">
+                            <label>{% trans "Students Supported" %} *</label>
+                            {{ student_form.student_count }}
+                            {{ student_form.student_count.errors }}
+                        </div>
+                        <div class="form-group">
+                            <label>{% trans "Notes" %}</label>
+                            {{ student_form.notes }}
+                            {{ student_form.notes.errors }}
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-sm">{% trans "Save Entry" %}</button>
+                    </div>
+                </form>
+            </details>
+            {% endif %}
+
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ current_year_students }}</div>
+                    <div class="stat-label">{% trans "Students Supported" %} ({{ current_year }})</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ all_time_students }}</div>
+                    <div class="stat-label">{% trans "All-Time Total" %}</div>
+                </div>
+            </div>
+
+            <div class="report-section">
+                <h2>{% trans "Student Support Records" %}</h2>
+                {% if student_entries %}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Year" %}</th>
+                            <th>{% trans "Students Supported" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            {% if request.user.is_staff or request.user.is_superuser %}<th></th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in student_entries %}
+                        <tr>
+                            <td>{{ entry.year }}</td>
+                            <td>{{ entry.student_count }}</td>
+                            <td>{{ entry.notes|default:"—" }}</td>
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <td>
+                                <form method="post" action="{% url 'pages:delete_student' entry.pk %}" onsubmit="return confirm('Delete this entry?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td>{% trans "All-Time Total" %}</td>
+                            <td>{{ all_time_students }}</td>
+                            <td{% if request.user.is_staff or request.user.is_superuser %} colspan="2"{% endif %}></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                {% else %}
+                <p class="empty-state">{% trans "No student support records found." %}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ===================== SOCIAL MEDIA TAB ===================== -->
+        <div id="tab-social" class="tab-content">
+
+            {% if request.user.is_staff or request.user.is_superuser %}
+            <details class="add-entry-panel" {% if active_tab == 'social' and social_form.errors %}open{% endif %}>
+                <summary>{% trans "Add Social Media Metrics" %}</summary>
+                <form class="add-entry-form" method="post" action="{% url 'pages:reports' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="social">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:0 1 160px;">
+                            <label>{% trans "Platform" %} *</label>
+                            {{ social_form.platform }}
+                            {{ social_form.platform.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 160px;">
+                            <label>{% trans "Date" %} *</label>
+                            {{ social_form.date }}
+                            {{ social_form.date.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Followers" %}</label>
+                            {{ social_form.followers }}
+                            {{ social_form.followers.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Post Reach" %}</label>
+                            {{ social_form.post_reach }}
+                            {{ social_form.post_reach.errors }}
+                        </div>
+                        <div class="form-group" style="flex:0 1 140px;">
+                            <label>{% trans "Engagement" %}</label>
+                            {{ social_form.engagement }}
+                            {{ social_form.engagement.errors }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>{% trans "Notes" %}</label>
+                            {{ social_form.notes }}
+                            {{ social_form.notes.errors }}
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-sm">{% trans "Save Entry" %}</button>
+                    </div>
+                </form>
+            </details>
+            {% endif %}
+
+            <div class="report-section">
+                <h2>{% trans "Social Media Records" %}</h2>
+                <form class="report-filter-bar" method="get">
+                    <input type="hidden" name="tab" value="social">
+                    <label>{% trans "Platform:" %}</label>
+                    <select name="platform">
+                        <option value="" {% if not platform_filter %}selected{% endif %}>{% trans "All" %}</option>
+                        {% for val, label in platform_choices %}
+                        <option value="{{ val }}" {% if platform_filter == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm">{% trans "Filter" %}</button>
+                </form>
+
+                {% if social_entries %}
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Platform" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Followers" %}</th>
+                            <th>{% trans "Post Reach" %}</th>
+                            <th>{% trans "Engagement" %}</th>
+                            <th>{% trans "Notes" %}</th>
+                            {% if request.user.is_staff or request.user.is_superuser %}<th></th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in social_entries %}
+                        <tr>
+                            <td><span class="badge-category badge-platform">{{ entry.get_platform_display }}</span></td>
+                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.followers|default:"—" }}</td>
+                            <td>{{ entry.post_reach|default:"—" }}</td>
+                            <td>{{ entry.engagement|default:"—" }}</td>
+                            <td>{{ entry.notes|default:"—" }}</td>
+                            {% if request.user.is_staff or request.user.is_superuser %}
+                            <td>
+                                <form method="post" action="{% url 'pages:delete_social' entry.pk %}" onsubmit="return confirm('Delete this entry?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-danger">{% trans "Delete" %}</button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="empty-state">{% trans "No social media records found." %}</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        (function () {
+            const buttons = document.querySelectorAll('.tab-btn');
+            const panes   = document.querySelectorAll('.tab-content');
+
+            function activateTab(tabId) {
+                buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabId));
+                panes.forEach(pane => pane.classList.toggle('active', pane.id === 'tab-' + tabId));
+            }
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+            });
+
+            // Initial tab: prefer context set active_tab (handles form errors), then URL param
+            const serverTab = "{{ active_tab }}";
+            const urlTab    = new URLSearchParams(window.location.search).get('tab');
+            activateTab(urlTab || serverTab || 'fundraising');
+        })();
+    </script>
+{% endblock %}
+

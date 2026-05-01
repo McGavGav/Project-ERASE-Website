@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "My Account" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .account-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        max-width: 560px;
+        margin: 2.5rem auto;
+        padding: 2rem 2.5rem;
+    }
+
+    .account-card h2 {
+        color: #1368B8;
+        margin-bottom: 1.5rem;
+        font-size: 1.4rem;
+    }
+
+    .account-field {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .account-field:last-child {
+        border-bottom: none;
+    }
+
+    .account-field .label {
+        font-weight: bold;
+        color: #555;
+        min-width: 130px;
+    }
+
+    .account-field .value {
+        color: #222;
+        text-align: right;
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .role-master  { background: #eb4c4c; color: #fff; }
+    .role-admin   { background: #f0a500; color: #fff; }
+    .role-user    { background: #0283FF; color: #fff; }
+
+    .danger-zone {
+        max-width: 560px;
+        margin: 0 auto 2.5rem;
+        border: 1px solid #f5c2c2;
+        border-radius: 8px;
+        padding: 1.2rem 2rem;
+        background: #fff8f8;
+    }
+
+    .danger-zone h3 {
+        color: #c0392b;
+        margin-bottom: 0.4rem;
+        font-size: 1rem;
+    }
+
+    .danger-zone p {
+        font-size: 0.88rem;
+        color: #666;
+        margin-bottom: 0.9rem;
+    }
+
+    .btn-delete {
+        background: #c0392b;
+        color: #fff;
+        border: none;
+        padding: 0.55rem 1.2rem;
+        border-radius: 5px;
+        font: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .btn-delete:hover { background: #a93226; }
+
+    .messages-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto 1rem;
+        max-width: 560px;
+    }
+
+    .messages-list li {
+        padding: 0.7rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 0.45rem;
+        font-size: 0.92rem;
+    }
+
+    .messages-list .success { background: #d4edda; color: #155724; }
+    .messages-list .error   { background: #f8d7da; color: #721c24; }
+    .messages-list .warning { background: #fff3cd; color: #856404; }
+    .messages-list .info    { background: #d1ecf1; color: #0c5460; }
+
+    .email-edit {
+        margin-top: 1.1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .email-edit label {
+        display: block;
+        font-size: 0.86rem;
+        color: #555;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+
+    .email-edit input[type="email"] {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 0.5rem 0.7rem;
+        font-size: 0.92rem;
+        font-family: inherit;
+        margin-bottom: 0.6rem;
+    }
+
+    .email-edit .errorlist {
+        list-style: none;
+        margin: 0 0 0.6rem;
+        padding: 0;
+        color: #c0392b;
+        font-size: 0.82rem;
+    }
+
+    .btn-sm {
+        padding: 0.45rem 1rem;
+        font-size: 0.86rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>{% trans "My Account" %}</h1>
+    </section>
+
+    <main class="container">
+        {% if messages %}
+        <ul class="messages-list">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="account-card">
+            <h2>{% trans "Account Details" %}</h2>
+
+            <div class="account-field">
+                <span class="label">{% trans "Username" %}</span>
+                <span class="value">{{ user.username }}</span>
+            </div>
+
+            {% if user.first_name or user.last_name %}
+            <div class="account-field">
+                <span class="label">{% trans "Name" %}</span>
+                <span class="value">{{ user.first_name }} {{ user.last_name }}</span>
+            </div>
+            {% endif %}
+
+            <div class="account-field">
+                <span class="label">{% trans "Email" %}</span>
+                <span class="value">{% if user.email %}{{ user.email }}{% else %}<em style="color:#aaa;">{% trans "Not set" %}</em>{% endif %}</span>
+            </div>
+
+            <form method="post" action="{% url 'pages:account' %}" class="email-edit">
+                {% csrf_token %}
+                <label for="{{ email_form.email.id_for_label }}">{% trans "Update Email" %}</label>
+                {{ email_form.email }}
+                {{ email_form.email.errors }}
+                <button type="submit" class="btn btn-sm">{% trans "Save Email" %}</button>
+            </form>
+
+            <div class="account-field">
+                <span class="label">{% trans "Member since" %}</span>
+                <span class="value">{{ user.date_joined|date:"N j, Y" }}</span>
+            </div>
+
+            <div class="account-field">
+                <span class="label">{% trans "Role" %}</span>
+                <span class="value">
+                    {% if role == "Master" %}
+                        <span class="role-badge role-master">{{ role }}</span>
+                    {% elif role == "Admin" %}
+                        <span class="role-badge role-admin">{{ role }}</span>
+                    {% else %}
+                        <span class="role-badge role-user">{{ role }}</span>
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </main>
+
+    {% if not user.is_superuser %}
+    <div class="container">
+        <div class="danger-zone">
+            <h3>{% trans "Account Deletion" %}</h3>
+            <p>{% trans "Permanently delete your account and all associated data. This action cannot be undone." %}</p>
+            {% trans 'Are you sure you want to permanently delete your account? This cannot be undone.' as confirm_msg %}
+            <form method="post" action="{% url 'pages:delete_account' %}"
+                onsubmit="return confirm('{{ confirm_msg|escapejs }}');">
+                {% csrf_token %}
+                <button type="submit" class="btn-delete">{% trans "Delete My Account" %}</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
