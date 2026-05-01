@@ -8,6 +8,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.urls import reverse
+from event_calendar.models import Event
+from event_calendar.forms import EventForm
 import sys
 import os
 
@@ -75,6 +78,9 @@ def calendar(request):
         next_month = current_month + 1
         next_year = current_year
 
+    event_form = EventForm()
+    event_added = request.GET.get('event_added') == '1'
+
     context = {
         'calendar_html': calendar_html,
         'current_month': current_month,
@@ -84,11 +90,28 @@ def calendar(request):
         'prev_year': prev_year,
         'next_month': next_month,
         'next_year': next_year,
+        'event_form': event_form,
+        'event_added': event_added,
     }
 
     return render(request, 'calendar.html', context)
 
+@login_required
+def add_event(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    
+    if request.method == 'POST':
+        form = EventForm(request.POST)
 
+        if form.is_valid():
+            form.save()
+            month = form.cleaned_data['date'].month
+            year = form.cleaned_data['date'].year
+
+            return redirect(f"{reverse('pages:calendar')}?month={month}&year={year}&event_added=1")
+    
+    return redirect('pages:calendar')
 
 def studentdb(request):
     # temp data to test database view.

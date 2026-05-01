@@ -108,6 +108,116 @@
         color: #333;
         margin-bottom: 0.5rem;
     }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 200;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        width: 100%;
+        max-width: 480px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-box h3 {
+        color: #1368b8;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+    }
+
+    .modal-box p {
+        margin-bottom: 1rem;
+    }
+
+    .modal-box label {
+        display: block;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 0.25rem;
+    }
+
+    .modal-box input,
+    .modal-box textarea {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font: inherit;
+        margin-bottom: 0.25rem;
+    }
+
+    .modal-box textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .modal-actions .btn-save {
+        background-color: #0283FF;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .modal-actions .btn-save:hover {
+        background-color: #1368B8;
+    }
+
+    .modal-actions .btn-cancel {
+        background: none;
+        border: 2px solid #ccc;
+        color: #555;
+        padding: 0.5rem 1.25rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+
+    .modal-actions .btn-cancel:hover {
+        border-color: #999;
+    }
+
+    #toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: #1368B8;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 6px;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 300;
+        animation: fadeout 0.5s ease 3s forwards;
+    }
+
+    @keyframes fadeout {
+        to { opacity: 0; visibility: hidden; }
+    }
 </style>
 {% endblock %}
 
