@@ -4,12 +4,16 @@ from django.db import models
 from django.db.models import Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db.models import Sum
+from .models import FundingEntry, WorkshopAttendance, StudentSupport, SocialMediaMetric
+from .forms import FundingEntryForm, WorkshopAttendanceForm, StudentSupportForm, SocialMediaMetricForm, AccountEmailForm
 from django.urls import reverse
 from event_calendar.models import Event, RSVP
 from event_calendar.forms import EventForm
@@ -255,17 +259,174 @@ def custom_admin(request):
 
 @login_required
 def reports(request):
-    """Placeholder reports view for admins."""
+    """Reports dashboard — fundraising, workshops, students, and social media."""
     if not (request.user.is_staff or request.user.is_superuser):
         raise PermissionDenied
 
-    context = {}
+    funding_form  = FundingEntryForm()
+    workshop_form = WorkshopAttendanceForm()
+    student_form  = StudentSupportForm()
+    social_form   = SocialMediaMetricForm()
+    active_tab    = request.GET.get('tab', 'fundraising')
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        if form_type == 'funding':
+            funding_form = FundingEntryForm(request.POST)
+            if funding_form.is_valid():
+                funding_form.save()
+                messages.success(request, 'Funding entry added.')
+                return redirect(reverse('pages:reports') + '?tab=fundraising')
+            active_tab = 'fundraising'
+        elif form_type == 'workshop':
+            workshop_form = WorkshopAttendanceForm(request.POST)
+            if workshop_form.is_valid():
+                workshop_form.save()
+                messages.success(request, 'Workshop record added.')
+                return redirect(reverse('pages:reports') + '?tab=workshops')
+            active_tab = 'workshops'
+        elif form_type == 'student':
+            student_form = StudentSupportForm(request.POST)
+            if student_form.is_valid():
+                student_form.save()
+                messages.success(request, 'Student support entry added.')
+                return redirect(reverse('pages:reports') + '?tab=students')
+            active_tab = 'students'
+        elif form_type == 'social':
+            social_form = SocialMediaMetricForm(request.POST)
+            if social_form.is_valid():
+                social_form.save()
+                messages.success(request, 'Social media entry added.')
+                return redirect(reverse('pages:reports') + '?tab=social')
+            active_tab = 'social'
+
+    # --- Fundraising ---
+    year_filter = request.GET.get('year', '')
+    type_filter = request.GET.get('fund_type', '')
+    funding_entries = FundingEntry.objects.all()
+    if year_filter:
+        funding_entries = funding_entries.filter(date__year=year_filter)
+    if type_filter:
+        funding_entries = funding_entries.filter(fund_type=type_filter)
+    funding_total   = funding_entries.aggregate(total=Sum('amount'))['total'] or 0
+    donations_total = funding_entries.filter(fund_type='donation').aggregate(total=Sum('amount'))['total'] or 0
+    grants_total    = funding_entries.filter(fund_type='grant').aggregate(total=Sum('amount'))['total'] or 0
+    # Build year list from all entries for the filter dropdown
+    funding_years = sorted(
+        set(FundingEntry.objects.values_list('date__year', flat=True)),
+        reverse=True
+    )
+
+    # --- Workshops ---
+    workshops       = WorkshopAttendance.objects.all()
+    workshop_count  = workshops.count()
+    total_attendees = workshops.aggregate(total=Sum('attendee_count'))['total'] or 0
+    avg_attendees   = round(total_attendees / workshop_count, 1) if workshop_count else 0
+
+    # --- Students Supported ---
+    student_entries      = StudentSupport.objects.all()
+    current_year         = datetime.now().year
+    current_year_students = (
+        StudentSupport.objects.filter(year=current_year)
+        .aggregate(total=Sum('student_count'))['total'] or 0
+    )
+    all_time_students = StudentSupport.objects.aggregate(total=Sum('student_count'))['total'] or 0
+
+    # --- Social Media ---
+    platform_filter = request.GET.get('platform', '')
+    social_entries  = SocialMediaMetric.objects.all()
+    if platform_filter:
+        social_entries = social_entries.filter(platform=platform_filter)
+
+    context = {
+        'funding_form':  funding_form,
+        'workshop_form': workshop_form,
+        'student_form':  student_form,
+        'social_form':   social_form,
+        'active_tab':    active_tab,
+        # fundraising
+        'funding_entries':  funding_entries,
+        'year_filter':      year_filter,
+        'type_filter':      type_filter,
+        'funding_years':    funding_years,
+        'funding_total':    funding_total,
+        'donations_total':  donations_total,
+        'grants_total':     grants_total,
+        # workshops
+        'workshops':        workshops,
+        'workshop_count':   workshop_count,
+        'total_attendees':  total_attendees,
+        'avg_attendees':    avg_attendees,
+        # students
+        'student_entries':        student_entries,
+        'current_year':           current_year,
+        'current_year_students':  current_year_students,
+        'all_time_students':      all_time_students,
+        # social media
+        'social_entries':   social_entries,
+        'platform_filter':  platform_filter,
+        'platform_choices': SocialMediaMetric.PLATFORM_CHOICES,
+    }
     return render(request, 'reports.html', context)
+
+
+@login_required
+def delete_funding(request, pk):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    entry = get_object_or_404(FundingEntry, pk=pk)
+    if request.method == 'POST':
+        entry.delete()
+        messages.success(request, 'Funding entry deleted.')
+    return redirect(reverse('pages:reports') + '?tab=fundraising')
+
+
+@login_required
+def delete_workshop(request, pk):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    workshop = get_object_or_404(WorkshopAttendance, pk=pk)
+    if request.method == 'POST':
+        workshop.delete()
+        messages.success(request, 'Workshop record deleted.')
+    return redirect(reverse('pages:reports') + '?tab=workshops')
+
+
+@login_required
+def delete_student(request, pk):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    entry = get_object_or_404(StudentSupport, pk=pk)
+    if request.method == 'POST':
+        entry.delete()
+        messages.success(request, 'Student support entry deleted.')
+    return redirect(reverse('pages:reports') + '?tab=students')
+
+
+@login_required
+def delete_social(request, pk):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    entry = get_object_or_404(SocialMediaMetric, pk=pk)
+    if request.method == 'POST':
+        entry.delete()
+        messages.success(request, 'Social media entry deleted.')
+    return redirect(reverse('pages:reports') + '?tab=social')
 
 @login_required
 def account(request):
     """Display the current user's account details."""
     user = request.user
+
+    if request.method == 'POST':
+        email_form = AccountEmailForm(request.POST, instance=user)
+        if email_form.is_valid():
+            email_form.save()
+            messages.success(request, 'Email updated successfully.')
+            return redirect('pages:account')
+    else:
+        email_form = AccountEmailForm(instance=user)
+
     groups = user.groups.values_list('name', flat=True)
     if user.is_superuser:
         role = 'Master'
@@ -277,6 +438,7 @@ def account(request):
         role = 'User'
     context = {
         'role': role,
+        'email_form': email_form,
     }
     return render(request, 'account.html', context)
 

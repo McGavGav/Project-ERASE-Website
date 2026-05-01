@@ -63,6 +63,7 @@
         nav ul {
             list-style: none;
             display: flex;
+                align-items: center;
             gap: 2rem;
             margin-left: auto;
         }
@@ -203,31 +204,39 @@
             display: block;
         }
 
-        .lang-switcher {
+        .nav-language-item {
             display: flex;
-            gap: 0.3rem;
             align-items: center;
         }
 
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
         .lang-switcher form {
-            display: inline;
+            display: inline-flex;
         }
 
         .lang-switcher button {
             background: none;
-            border: 1px solid rgba(255,255,255,0.5);
+            border: none;
             color: white;
             font: inherit;
-            font-size: 0.8rem;
             cursor: pointer;
-            padding: 0.2rem 0.5rem;
-            border-radius: 3px;
-            transition: background 0.2s;
+            padding: 0;
+            opacity: 0.75;
+            transition: opacity 0.3s;
         }
 
         .lang-switcher button:hover,
         .lang-switcher button.active {
-            background: rgba(255,255,255,0.2);
+            opacity: 1;
+        }
+
+        .lang-switcher span {
+            color: rgba(255,255,255,0.6);
         }
     </style>
     {% block extra_styles %}{% endblock %}
@@ -279,22 +288,25 @@
                 {% else %}
                 <li><a href="{% url 'pages:login' %}">{% trans "Login" %}</a></li>
                 {% endif %}
+                {% get_current_language as LANGUAGE_CODE %}
+                <li class="nav-language-item">
+                    <div class="lang-switcher" aria-label="{% trans 'Language selector' %}">
+                        <form method="post" action="{% url 'set_language' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <input type="hidden" name="language" value="en">
+                            <button type="submit"{% if LANGUAGE_CODE == 'en' %} class="active"{% endif %}>EN</button>
+                        </form>
+                        <span>/</span>
+                        <form method="post" action="{% url 'set_language' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.path }}">
+                            <input type="hidden" name="language" value="es">
+                            <button type="submit"{% if LANGUAGE_CODE == 'es' %} class="active"{% endif %}>ES</button>
+                        </form>
+                    </div>
+                </li>
             </ul>
-            {% get_current_language as LANGUAGE_CODE %}
-            <div class="lang-switcher">
-                <form method="post" action="{% url 'set_language' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <input type="hidden" name="language" value="en">
-                    <button type="submit"{% if LANGUAGE_CODE == 'en' %} class="active"{% endif %}>EN</button>
-                </form>
-                <form method="post" action="{% url 'set_language' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="next" value="{{ request.path }}">
-                    <input type="hidden" name="language" value="es">
-                    <button type="submit"{% if LANGUAGE_CODE == 'es' %} class="active"{% endif %}>ES</button>
-                </form>
-            </div>
         </nav>
     </header>
 
