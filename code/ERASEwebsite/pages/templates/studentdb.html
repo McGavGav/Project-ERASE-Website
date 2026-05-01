@@ -276,7 +276,6 @@
 {% endif %}
 
 <div class="search-bar">
-<<<<<<< student-database
     <form>
         <input type="text" name="search" placeholder="Search by name...">
         <select name="gender">
@@ -285,38 +284,6 @@
             <option value="Female">Female</option>
         </select>
         <input type="text" name="school" placeholder="Filter by school...">
-=======
-    <form method="GET">
-        <input
-            type="text"
-            name="search"
-            placeholder="{% trans "Search by name..." %}"
-            value="{{ search_query }}"
-        >
-        <select name="gender">
-            <option value="">{% trans "All Genders" %}</option>
-            <option value="Male"
-                {% if gender_filter == "Male" %}selected{% endif %}
-            >
-                Male
-            </option>
-
-            <option value="Female"
-                {% if gender_filter == "Female" %}selected{% endif %}
-            >
-                Female
-            </option>
-        </select>
-        <input
-            type="text"
-            name="school"
-            placeholder="{% trans "Filter by school..." %}"
-            value="{{ school_filter }}"
-        >
-        <button type="submit">
-            {% trans "Search" %}
-        </button>
->>>>>>> main
     </form>
 </div>
 
