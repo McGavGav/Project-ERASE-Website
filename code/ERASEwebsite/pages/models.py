@@ -1,5 +1,4 @@
 from django.db import models
-<<<<<<< student-database
 import os
 
 class StudentQuerySet(models.QuerySet):
@@ -47,7 +46,6 @@ class Student(models.Model):
         if self.photo and os.path.isfile(self.photo.path):
             os.remove(self.photo.path)
         super().delete(*args, **kwargs)
-=======
 
 
 class FundingEntry(models.Model):
@@ -118,4 +116,3 @@ class SocialMediaMetric(models.Model):
 
     def __str__(self):
         return f"{self.get_platform_display()} – {self.date}"
->>>>>>> main
