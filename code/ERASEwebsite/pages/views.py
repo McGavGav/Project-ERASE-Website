@@ -1,5 +1,7 @@
 from datetime import datetime
 from datetime import date
+from django.db import models
+from django.db.models import Count
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.views import LoginView, LogoutView
@@ -141,6 +143,28 @@ def rsvp_event(request, event_id):
         rsvp.delete()
 
     return redirect(f"{reverse('pages:calendar')}?month={event.date.month}&year={event.date.year}")
+
+@login_required
+def rsvp_listing(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    
+    events = Event.objects.filter(hasRSVP=True).order_by('date', 'time')
+    events = events.annotate(rsvp_count=models.Count('rsvps'))
+    context = {'events': events}
+
+    return render(request, 'rsvp_listing.html', context)
+
+@login_required
+def rsvp_detail(request, event_id):
+    if not (request.user.is_staff or request.user.is_superuser):
+        raise PermissionDenied
+    
+    event = get_object_or_404(Event, pk=event_id, hasRSVP=True)
+    rsvps = event.rsvps.select_related('user').order_by('reserved_at')
+    context = {'event': event, 'rsvps': rsvps}
+
+    return render(request, 'rsvp_detail.html', context)
 
 def studentdb(request):
     # temp data to test database view.
