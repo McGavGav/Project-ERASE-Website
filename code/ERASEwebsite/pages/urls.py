@@ -13,6 +13,7 @@ urlpatterns = [
     path('signup/', views.signup, name='signup'),
     path('calendar/', views.calendar, name='calendar'),
     path('calendar/add-event/', views.add_event, name='add_event'),
+    path('calendar/rsvp/<int:event_id>/', views.rsvp_event, name='rsvp_event'),
     path('shipment-map/', views.shipment_map, name='shipment_map'),
     path('studentdb/', views.studentdb, name='studentdb'),
     path('manage-users/', views.manage_users, name='manage_users'),

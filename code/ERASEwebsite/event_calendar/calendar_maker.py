@@ -39,7 +39,13 @@ class EventCalendar(HTMLCalendar):
         for event in self.events.get(current_date, []):
             time_str = event.time.strftime('%I:%M %p').lstrip('0')
             cell_html += (
-                f'<div class="event-pill">'
+                f'<div class="event-pill" '
+                f'data-event-id="{event.pk}" '
+                f'data-title="{escape(event.title)}" '
+                f'data-time="{escape(time_str)}" '
+                f'data-description="{escape(event.description)}" '
+                f'data-has-rsvp="{str(event.hasRSVP).lower()}" '
+                f'onclick="openEventDetailModal(this)">'
                 f'<span class="event-time">{escape(time_str)}</span> '
                 f'<span class="event-title">{escape(event.title)}</span>'
                 f'</div>'

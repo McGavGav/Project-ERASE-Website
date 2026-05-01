@@ -234,6 +234,35 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .event-pill:hover {
+        background-color: #1368B8;
+    }
+
+    .event-detail-box {
+        max-width: 520px;
+    }
+
+    .event-detail-title {
+        color: #1368B8;
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-detail-time {
+        color: #555;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+
+    .event-detail-description {
+        color: #333;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        white-space: pre-wrap;
     }
 
     .event-time {
@@ -242,6 +271,29 @@
 
     .event-title {
         font-weight: normal;
+    }
+
+    .btn-rsvp {
+        background-color: #0283FF;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.25rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-rsvp:hover {
+        background-color: #1368B8;
+    }
+
+    .btn-rsvp.rsvped {
+        background-color: #eb4c4c;
+    }
+
+    .btn-rsvp.rsvped:hover {
+        background-color: #c0392b;
     }
 </style>
 {% endblock %}
@@ -294,17 +346,34 @@
 <div id="toast">{% trans "Event added successfully!" %}</div>
 {% endif %}
 
-<script>
-    function openModal() {
-        document.getElementById('event-modal-overlay').classList.add('open');
-    }
+<div id="event-detail-overlay" class="modal-overlay">
+    <div class="modal-box event-detail-box">
+        <h3 id="detail-title" class="event-detail-title"></h3>
+        <div id="detail-time" class="event-detail-time"></div>
+        <p id="detail-description" class="event-detail-description"></p>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" onclick="closeEventDetailModal()">
+                {% trans "Close" %}
+            </button>
+            <form id="rsvp-form" method="post" action="" style="display:none;">
+                {% csrf_token %}
+                <button type="submit" id="rsvp-btn" class="btn-rsvp">{% trans "RSVP" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
 
-    function closeModal() {
-        document.getElementById('event-modal-overlay').classList.remove('open');
+<script type="application/json" id="rsvped-ids-data">{{ rsvped_ids|safe }}</script>
+<script type="application/json" id="calendar-config">
+    {
+        "isAuthenticated": {{ user.is_authenticated|yesno:"true,false" }},
+        "rsvpUrlTemplate": "{% url 'pages:rsvp_event' event_id=0 %}",
+        "hasAdminModal": {{ user.is_staff|yesno:"true,false" }},
+        "labelRsvp": "{% trans 'RSVP' %}",
+        "labelCancelRsvp": "{% trans 'Cancel RSVP' %}"
     }
-
-    document.getElementById('event-modal-overlay')?.addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
 </script>
+
+{% load static %}
+<script src="{% static 'pages/javascript/calendar.js' %}" defer></script>
 {% endblock %}

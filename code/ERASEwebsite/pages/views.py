@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group, User
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.urls import reverse
-from event_calendar.models import Event
+from event_calendar.models import Event, RSVP
 from event_calendar.forms import EventForm
 import sys
 import os
@@ -86,6 +86,13 @@ def calendar(request):
     event_form = EventForm()
     event_added = request.GET.get('event_added') == '1'
 
+    rsvped_ids = set()
+    if request.user.is_authenticated:
+        rsvped_ids = set(
+            RSVP.objects.filter(user=request.user, event__in=month_events)
+                .values_list('event_id', flat=True)
+        )
+
     context = {
         'calendar_html': calendar_html,
         'current_month': current_month,
@@ -97,6 +104,7 @@ def calendar(request):
         'next_year': next_year,
         'event_form': event_form,
         'event_added': event_added,
+        'rsvped_ids': list(rsvped_ids),
     }
 
     return render(request, 'calendar.html', context)
@@ -117,6 +125,22 @@ def add_event(request):
             return redirect(f"{reverse('pages:calendar')}?month={month}&year={year}&event_added=1")
     
     return redirect('pages:calendar')
+
+@login_required
+def rsvp_event(request, event_id):
+    if request.method != 'POST':
+        return redirect('pages:calendar')
+    
+    event = get_object_or_404(Event, pk=event_id)
+
+    if not event.hasRSVP:
+        raise PermissionDenied
+    
+    rsvp, created = RSVP.objects.get_or_create(user=request.user, event=event)
+    if not created:
+        rsvp.delete()
+
+    return redirect(f"{reverse('pages:calendar')}?month={event.date.month}&year={event.date.year}")
 
 def studentdb(request):
     # temp data to test database view.
