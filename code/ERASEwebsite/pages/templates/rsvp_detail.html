@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ event.title }} - RSVPs{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .rsvp-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .event-info-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .event-info-card h2 {
+        color: #1368B8;
+        margin-bottom: 0.4rem;
+    }
+
+    .event-info-card .event-meta {
+        color: #666;
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .attendee-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .attendee-table th {
+        background: #1368B8;
+        color: white;
+        padding: 0.85rem 1.25rem;
+        text-align: left;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .attendee-table td {
+        padding: 0.85rem 1.25rem;
+        border-bottom: 1px solid #eee;
+        color: #333;
+    }
+
+    .attendee-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .attendee-table tr:hover td {
+        background: #f4f9ff;
+    }
+
+    .back-link {
+        display: inline-block;
+        margin-bottom: 1.5rem;
+        color: #1368B8;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: #888;
+        padding: 3rem 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% trans "Event RSVPs" %}</h1>
+</div>
+
+<div class="rsvp-container">
+    <a href="{% url 'pages:rsvp_listing' %}" class="back-link">&larr; {% trans "Back to RSVP Listing" %}</a>
+
+    <div class="event-info-card">
+        <h2>{{ event.title }}</h2>
+        <div class="event-meta">{{ event.date }} &mdash; {{ event.time }}</div>
+        {% if event.description %}
+        <p>{{ event.description }}</p>
+        {% endif %}
+    </div>
+
+    {% if rsvps %}
+    <table class="attendee-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{% trans "Username" %}</th>
+                <th>{% trans "RSVP Date" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rsvp in rsvps %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ rsvp.user.username }}</td>
+                <td>{{ rsvp.reserved_at|date:"N j, Y g:i A" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">{% trans "No one has RSVPed for this event." %}</div>
+    {% endif %}
+</div>
+{% endblock %}

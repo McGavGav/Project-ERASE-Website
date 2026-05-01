@@ -6,11 +6,12 @@ from html import escape
 class EventCalendar(HTMLCalendar):
     """Custom HTMLCalendar that displays events on specific dates"""
     
-    def __init__(self):
+    def __init__(self, events=None):
         """
         Initialize calendar with optional events dictionary
         """
         super().__init__()
+        self.events = events or {}
     
     def formatday(self, day, weekday):
         """
@@ -34,6 +35,21 @@ class EventCalendar(HTMLCalendar):
         # Day number
         day_class = 'day-number-highlight' if is_today else 'day-number'
         cell_html += f'<div class="{day_class}">{day}</div>'
+
+        for event in self.events.get(current_date, []):
+            time_str = event.time.strftime('%I:%M %p').lstrip('0')
+            cell_html += (
+                f'<div class="event-pill" '
+                f'data-event-id="{event.pk}" '
+                f'data-title="{escape(event.title)}" '
+                f'data-time="{escape(time_str)}" '
+                f'data-description="{escape(event.description)}" '
+                f'data-has-rsvp="{str(event.hasRSVP).lower()}" '
+                f'onclick="openEventDetailModal(this)">'
+                f'<span class="event-time">{escape(time_str)}</span> '
+                f'<span class="event-title">{escape(event.title)}</span>'
+                f'</div>'
+            )
         
         cell_html += '</td>'
         return cell_html
@@ -63,7 +79,7 @@ class EventCalendar(HTMLCalendar):
         return ''.join(v)
 
 
-def get_calendar_html(year, month):
+def get_calendar_html(year, month, events=None):
     """
     Generate calendar HTML for a specific month
     
@@ -76,5 +92,5 @@ def get_calendar_html(year, month):
     Returns:
         HTML string for the calendar
     """
-    calendar = EventCalendar()
+    calendar = EventCalendar(events=events)
     return calendar.formatmonth(year, month)
