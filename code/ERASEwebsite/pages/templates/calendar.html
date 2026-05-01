@@ -231,13 +231,55 @@
         <h2>{{ display_date|date:"F Y" }}</h2>
         <div class="month-buttons">
             {% if user.is_staff or user.is_superuser %}
-                <button>{% trans "Add Event" %}</button>
+                <button type="button" onclick="openModal()">
+                    {% trans "Add Event" %}
+                </button>
             {% endif %}
-            <button onclick="window.location.href='?month={{ prev_month }}&year={{ prev_year }}'">{% trans "Previous" %}</button>
-            <button onclick="window.location.href='?month={{ next_month }}&year={{ next_year }}'">{% trans "Next" %}</button>
+            <button
+             type="submit" onclick="window.location.href='?month={{ prev_month }}&year={{ prev_year }}'">
+                {% trans "Previous" %}
+            </button>
+            <button
+             type="submit" onclick="window.location.href='?month={{ next_month }}&year={{ next_year }}'">
+                {% trans "Next" %}
+            </button>
         </div>
     </div>
 
     {{ calendar_html|safe }}
 </div>
+
+{% if user.is_staff or user.is_superuser %}
+<div id="event-modal-overlay" class="modal-overlay">
+    <div class="modal-box">
+        <h3>{% trans "Add Event" %}</h3>
+        <form method="post" action="{% url 'pages:add_event' %}">
+            {% csrf_token %}
+            {{ event_form.as_p }}
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeModal()">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn-save">{% trans "Save Event" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% if event_added %}
+<div id="toast">{% trans "Event added successfully!" %}</div>
+{% endif %}
+
+<script>
+    function openModal() {
+        document.getElementById('event-modal-overlay').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('event-modal-overlay').classList.remove('open');
+    }
+
+    document.getElementById('event-modal-overlay')?.addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+</script>
 {% endblock %}
