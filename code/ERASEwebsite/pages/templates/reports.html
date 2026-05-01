@@ -389,10 +389,9 @@
                     <input type="hidden" name="tab" value="fundraising">
                     <label>{% trans "Year:" %}</label>
                     <select name="year">
-                        <option value="{{ current_year }}" {% if year_filter == current_year|stringformat:"s" %}selected{% endif %}>{{ current_year }}</option>
-                        {% for yr in funding_years %}{% if yr != current_year %}
+                        {% for yr in funding_years %}
                         <option value="{{ yr }}" {% if year_filter == yr|stringformat:"s" %}selected{% endif %}>{{ yr }}</option>
-                        {% endif %}{% endfor %}
+                        {% endfor %}
                         <option value="" {% if not year_filter %}selected{% endif %}>{% trans "All years" %}</option>
                     </select>
                     <label>{% trans "Type:" %}</label>

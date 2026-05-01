@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import FundingEntry, WorkshopAttendance, StudentSupport, SocialMediaMetric
 
 _date_input = {'type': 'date'}
@@ -41,4 +42,13 @@ class SocialMediaMetricForm(forms.ModelForm):
         widgets = {
             'date':  forms.DateInput(attrs=_date_input),
             'notes': forms.Textarea(attrs=_text_input),
+        }
+
+
+class AccountEmailForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['email']
+        widgets = {
+            'email': forms.EmailInput(attrs={'placeholder': 'name@example.com'})
         }

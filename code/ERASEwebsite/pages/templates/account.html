@@ -91,6 +91,62 @@
     }
 
     .btn-delete:hover { background: #a93226; }
+
+    .messages-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto 1rem;
+        max-width: 560px;
+    }
+
+    .messages-list li {
+        padding: 0.7rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 0.45rem;
+        font-size: 0.92rem;
+    }
+
+    .messages-list .success { background: #d4edda; color: #155724; }
+    .messages-list .error   { background: #f8d7da; color: #721c24; }
+    .messages-list .warning { background: #fff3cd; color: #856404; }
+    .messages-list .info    { background: #d1ecf1; color: #0c5460; }
+
+    .email-edit {
+        margin-top: 1.1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .email-edit label {
+        display: block;
+        font-size: 0.86rem;
+        color: #555;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+
+    .email-edit input[type="email"] {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 0.5rem 0.7rem;
+        font-size: 0.92rem;
+        font-family: inherit;
+        margin-bottom: 0.6rem;
+    }
+
+    .email-edit .errorlist {
+        list-style: none;
+        margin: 0 0 0.6rem;
+        padding: 0;
+        color: #c0392b;
+        font-size: 0.82rem;
+    }
+
+    .btn-sm {
+        padding: 0.45rem 1rem;
+        font-size: 0.86rem;
+    }
 </style>
 {% endblock %}
 
@@ -100,6 +156,14 @@
     </section>
 
     <main class="container">
+        {% if messages %}
+        <ul class="messages-list">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         <div class="account-card">
             <h2>{% trans "Account Details" %}</h2>
 
@@ -119,6 +183,14 @@
                 <span class="label">{% trans "Email" %}</span>
                 <span class="value">{% if user.email %}{{ user.email }}{% else %}<em style="color:#aaa;">{% trans "Not set" %}</em>{% endif %}</span>
             </div>
+
+            <form method="post" action="{% url 'pages:account' %}" class="email-edit">
+                {% csrf_token %}
+                <label for="{{ email_form.email.id_for_label }}">{% trans "Update Email" %}</label>
+                {{ email_form.email }}
+                {{ email_form.email.errors }}
+                <button type="submit" class="btn btn-sm">{% trans "Save Email" %}</button>
+            </form>
 
             <div class="account-field">
                 <span class="label">{% trans "Member since" %}</span>

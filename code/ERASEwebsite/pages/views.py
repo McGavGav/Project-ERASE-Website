@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
 from .models import FundingEntry, WorkshopAttendance, StudentSupport, SocialMediaMetric
-from .forms import FundingEntryForm, WorkshopAttendanceForm, StudentSupportForm, SocialMediaMetricForm
+from .forms import FundingEntryForm, WorkshopAttendanceForm, StudentSupportForm, SocialMediaMetricForm, AccountEmailForm
 import sys
 import os
 
@@ -227,7 +227,7 @@ def reports(request):
             active_tab = 'social'
 
     # --- Fundraising ---
-    year_filter = request.GET.get('year', str(datetime.now().year))
+    year_filter = request.GET.get('year', '')
     type_filter = request.GET.get('fund_type', '')
     funding_entries = FundingEntry.objects.all()
     if year_filter:
@@ -238,9 +238,9 @@ def reports(request):
     donations_total = funding_entries.filter(fund_type='donation').aggregate(total=Sum('amount'))['total'] or 0
     grants_total    = funding_entries.filter(fund_type='grant').aggregate(total=Sum('amount'))['total'] or 0
     # Build year list from all entries for the filter dropdown
-    funding_years = list(
-        FundingEntry.objects.dates('date', 'year', order='DESC')
-        .values_list('date__year', flat=True)
+    funding_years = sorted(
+        set(FundingEntry.objects.values_list('date__year', flat=True)),
+        reverse=True
     )
 
     # --- Workshops ---
@@ -343,6 +343,16 @@ def delete_social(request, pk):
 def account(request):
     """Display the current user's account details."""
     user = request.user
+
+    if request.method == 'POST':
+        email_form = AccountEmailForm(request.POST, instance=user)
+        if email_form.is_valid():
+            email_form.save()
+            messages.success(request, 'Email updated successfully.')
+            return redirect('pages:account')
+    else:
+        email_form = AccountEmailForm(instance=user)
+
     groups = user.groups.values_list('name', flat=True)
     if user.is_superuser:
         role = 'Master'
@@ -354,6 +364,7 @@ def account(request):
         role = 'User'
     context = {
         'role': role,
+        'email_form': email_form,
     }
     return render(request, 'account.html', context)
 
