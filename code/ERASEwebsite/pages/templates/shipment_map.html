@@ -1,358 +1,695 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>Project ERASE Interactive Map Prototype</title>
-
-<!-- Leaflet CSS and JS loaded via CDN for interactive mapping -->
+<title>Project ERASE Interactive Map - Shipments & Workshops</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-<!-- Small page styling for body and map container -->
 <style>
-
-body{
-font-family:Arial;
-margin:20px;
-}
-
-#map{
-height:600px;
-width:100%;
-}
-
-.controls{
-margin-bottom:10px;
-}
-
-
-
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; color: #333; }
+.container { max-width: 1200px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 30px; }
+.header h2 { margin: 0; color: #2c3e50; }
+.header p { color: #7f8c8d; margin: 10px 0 0; }
+.controls-section { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+.control-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); flex: 1; min-width: 300px; }
+.control-card h3 { margin: 0 0 15px; color: #34495e; font-size: 18px; }
+.button-group { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+.btn-primary { background: #3498db; color: white; }
+.btn-primary:hover { background: #2980b9; }
+.btn-secondary { background: #95a5a6; color: white; }
+.btn-secondary:hover { background: #7f8c8d; }
+.btn-success { background: #27ae60; color: white; }
+.btn-success:hover { background: #229954; }
+.btn-danger { background: #e74c3c; color: white; }
+.btn-danger:hover { background: #c0392b; }
+.status-display { background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-family: monospace; }
+.status-display div { margin: 5px 0; }
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.filter-field { display: flex; flex-direction: column; gap: 5px; }
+.filter-field label { font-size: 13px; font-weight: 600; color: #34495e; }
+.filter-field input, .filter-field select { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; background: white; }
+.filter-field input:focus, .filter-field select:focus { outline: none; border-color: #3498db; }
+.filter-actions { align-items: end; display: flex; gap: 10px; flex-wrap: wrap; }
+.filter-summary { margin-top: 12px; color: #555; font-size: 14px; }
+#map { height: 600px; width: 100%; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.event-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+.event-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.2s; }
+.event-card:hover { transform: translateY(-2px); }
+.event-card-header { display: flex; justify-content: space-between; align-items: center; }
+.event-card h3 { margin: 0 0 10px; color: #34495e; }
+.event-card p { margin: 0.5rem 0; line-height: 1.5; color: #555; }
+.event-card img { max-width: 100%; height: auto; border-radius: 8px; margin-top: 15px; }
+.delete-btn { background: #e74c3c; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.delete-btn:hover { background: #c0392b; }
+.empty-state { padding: 40px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; color: #7f8c8d; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+.modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+.close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+.close:hover { color: #000; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+.form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: #3498db; }
 </style>
-
 </head>
-
 <body>
-
-<h2>Project ERASE Interactive Map Prototype</h2>
-
-<!-- UI controls for transit timing and playback actions -->
-<div class="controls">
-
-<label>Total Transit Time:</label>
-
-<input id="daysInput" type="number" value="0" style="width:60px"> days
-<input id="hoursInput" type="number" value="0" style="width:60px"> hours
-<input id="minutesInput" type="number" value="1" style="width:60px"> minutes
-<input id="secondsInput" type="number" value="0" style="width:60px"> seconds
-
-<button onclick="startShipment()">Start</button>
-<button onclick="pauseShipment()">Pause</button>
-<button onclick="resetShipment()">Reset</button>
-
+<div class="container">
+<div class="header">
+<h2>Project ERASE Interactive Map</h2>
+<p>Track shipments in real-time and view workshop locations managed through the admin interface.</p>
 </div>
-
-<div style="margin-top:10px;">
-
-<strong>Status:</strong>
-<span id="status">Waiting</span>
-
-&nbsp;&nbsp;
-
-<strong>ETA:</strong>
-<span id="eta">--</span>
-
-&nbsp;&nbsp;
-
-<strong>Elapsed Time:</strong>
-<span id="timer">0 s</span>
-
-&nbsp;&nbsp;
-
-<strong>Progress:</strong>
-<span id="progress">0%</span>
-
-&nbsp;&nbsp;
-
-<strong>Distance Traveled:</strong>
-<span id="distance">0 miles</span>
-
-&nbsp;&nbsp;
-
-<strong>Distance Remaining:</strong>
-<span id="remaining">0 miles</span>
-
+<div class="controls-section">
+<div class="control-card">
+<h3>Shipment Controls</h3>
+<div class="button-group">
+<button id="addShipmentBtn" class="btn btn-primary">Add Shipment</button>
+<button id="startShipmentBtn" class="btn btn-success">Start</button>
+<button id="pauseShipmentBtn" class="btn btn-secondary">Pause</button>
+<button id="resetShipmentBtn" class="btn btn-danger">Reset</button>
 </div>
-
+</div>
+<div class="control-card">
+<h3>Workshop Pins</h3>
+<p style="font-size:12px; color:#666;">User: {{ user.username|default:"Not logged in" }} (Staff: {{ user.is_staff|yesno:"Yes,No" }})</p>
+{% if show_add_pin %}
+<div class="button-group">
+<button id="addPinButton" class="btn btn-primary">Add Workshop Pin</button>
+</div>
+<span id="pinHint" style="margin-top:10px;display:block;color:#555;font-size:14px;">Click the button, then click the map to place a new pin.</span>
+{% elif user.is_authenticated %}
+<span style="color:#555;">Only admin users can add workshop pins from this page.</span>
+{% else %}
+<span style="color:#555;">Log in as an admin to add workshop pins directly from this page.</span>
+{% endif %}
+</div>
+<div class="control-card">
+<h3>Workshop Filters</h3>
+<div class="filter-grid">
+<div class="filter-field">
+<label for="workshopSearch">Search</label>
+<input id="workshopSearch" type="search" placeholder="Title or location">
+</div>
+<div class="filter-field">
+<label for="cityFilter">City</label>
+<select id="cityFilter">
+<option value="">All cities</option>
+</select>
+</div>
+<div class="filter-field">
+<label for="statusFilter">Status</label>
+<select id="statusFilter">
+<option value="">All statuses</option>
+<option value="future">Future</option>
+<option value="today">Today</option>
+<option value="past">Past</option>
+</select>
+</div>
+<div class="filter-field">
+<label for="startDateFilter">Start date</label>
+<input id="startDateFilter" type="date">
+</div>
+<div class="filter-field">
+<label for="endDateFilter">End date</label>
+<input id="endDateFilter" type="date">
+</div>
+<div class="filter-actions">
+<label style="display:flex;align-items:center;gap:8px;color:#34495e;font-size:14px;"><input id="futureOnlyFilter" type="checkbox"> Future only</label>
+<button id="clearWorkshopFilters" class="btn btn-secondary" type="button">Clear</button>
+</div>
+</div>
+<div id="filterSummary" class="filter-summary">Showing all workshops.</div>
+</div>
+</div>
+<div class="status-display">
+<strong>Status:</strong> <span id="status">Waiting</span><br>
+<strong>ETA:</strong> <span id="eta">--</span><br>
+<strong>Elapsed Time:</strong> <span id="timer">0 s</span><br>
+<strong>Progress:</strong> <span id="progress">0%</span><br>
+<strong>Distance Traveled:</strong> <span id="distance">0 miles</span><br>
+<strong>Distance Remaining:</strong> <span id="remaining">0 miles</span>
+</div>
 <div id="map"></div>
+<div id="event-list" class="event-list"></div>
+</div>
 
+<!-- Hidden CSRF token for AJAX requests -->
+{% csrf_token %}
+
+<div id="shipmentModal" class="modal">
+<div class="modal-content">
+<span class="close" id="closeShipmentModal">&times;</span>
+<h3>Add New Shipment</h3>
+<form id="shipmentForm">
+<div class="form-group">
+<label for="originCity">Origin City:</label>
+<input type="text" id="originCity" placeholder="e.g., Pullman, WA" required>
+</div>
+<div class="form-group">
+<label for="destCity">Destination City:</label>
+<input type="text" id="destCity" placeholder="e.g., Guatemala City, Guatemala" required>
+</div>
+<div class="form-group">
+<label for="transitDays">Transit Time - Days:</label>
+<input type="number" id="transitDays" value="0" min="0">
+</div>
+<div class="form-group">
+<label for="transitHours">Hours:</label>
+<input type="number" id="transitHours" value="0" min="0" max="23">
+</div>
+<div class="form-group">
+<label for="transitMinutes">Minutes:</label>
+<input type="number" id="transitMinutes" value="1" min="0" max="59">
+</div>
+<div class="form-group">
+<label for="transitSeconds">Seconds:</label>
+<input type="number" id="transitSeconds" value="0" min="0" max="59">
+</div>
+<button type="submit" class="btn btn-primary">Create Shipment</button>
+</form>
+</div>
+</div>
+<div id="pinModal" class="modal">
+<div class="modal-content">
+<span class="close" id="closePinModal">&times;</span>
+<h3>Add Workshop Pin</h3>
+<form id="new-pin-form" action="{% url 'pages:shipment_map' %}" method="post" enctype="multipart/form-data">
+{% csrf_token %}
+<input type="hidden" name="latitude" id="pinLatitude">
+<input type="hidden" name="longitude" id="pinLongitude">
+<div style="margin-bottom:8px;"><strong>New workshop location:</strong> <span id="pinCoordinates">None</span></div>
+<div class="form-group">
+<label>Title:</label>
+<input id="pinTitle" name="title" type="text" required>
+</div>
+<div class="form-group">
+<label>City:</label>
+<input id="pinCity" name="city" type="text" placeholder="e.g., Pullman, WA">
+</div>
+<div class="form-group">
+<label>Date:</label>
+<input id="pinDate" name="date" type="date" required>
+</div>
+<div class="form-group">
+<label>Description:</label>
+<textarea id="pinDescription" name="description" rows="4"></textarea>
+</div>
+<div class="form-group">
+<label>Photo (optional):</label>
+<input name="photo" type="file" accept="image/*">
+</div>
+<div class="button-group">
+<button type="submit" class="btn btn-primary">Save Workshop Pin</button>
+<button id="cancelPinButton" type="button" class="btn btn-secondary">Cancel</button>
+</div>
+</form>
+</div>
+</div>
 <script>
+var originCoord = [46.7298, -117.1817];
+var destinationCoord = [14.6349, -90.5069];
+var totalTransitSeconds = 0;
+var startTime = null;
+var animationInterval = null;
+var routePoints = [];
+var completedRoute = null;
+var remainingRoute = null;
+var shipmentMarker = null;
 
-// JavaScript for the interactive shipment simulation
-
-// Origin coordinate: Pullman, Washington
-const origin = [46.7298,-117.1817]
-
-// Destination coordinate: Guatemala City
-const destination = [14.6349,-90.5069]
-
-// State variables for animation and timing
-var startTime = null
-var totalTransitSeconds = 0
-var animationInterval = null
-
-// Circle distance between two lat/lng points in miles
-function haversineDistance(lat1, lon1, lat2, lon2){
-
-var R = 3958.8   // Earth radius in miles
-
-var dLat = (lat2-lat1) * Math.PI/180
-var dLon = (lon2-lon1) * Math.PI/180
-
-var a =
-Math.sin(dLat/2)*Math.sin(dLat/2) +
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2)*Math.sin(dLon/2)
-
-var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-
-return R*c
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  var R = 3958.8;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLon = (lon2 - lon1) * Math.PI / 180;
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
-var totalDistance = haversineDistance(
-origin[0],origin[1],
-destination[0],destination[1]
-)
-
-// Create a curved arc path between origin and destination
-function createArc(start, end, segments=100){
-
-var latlngs = []
-
-for(let i=0;i<=segments;i++){
-
-var t = i/segments
-
-var lat =
-start[0] + (end[0]-start[0])*t
-
-var lng =
-start[1] + (end[1]-start[1])*t
-
-var offset = Math.sin(Math.PI*t)*5
-
-latlngs.push([lat+offset,lng])
-
+function createArc(start, end, segments = 120) {
+  var latlngs = [];
+  for (var i = 0; i <= segments; i++) {
+    var t = i / segments;
+    var lat = start[0] + (end[0] - start[0]) * t;
+    var lng = start[1] + (end[1] - start[1]) * t;
+    var offset = Math.sin(Math.PI * t) * 5;
+    latlngs.push([lat + offset, lng]);
+  }
+  return latlngs;
 }
 
-return latlngs
+function resetMapRoute() {
+  routePoints = createArc(originCoord, destinationCoord);
+  if (completedRoute) {
+    completedRoute.setLatLngs([]);
+  } else {
+    completedRoute = L.polyline([], { color: 'green', weight: 4 }).addTo(map);
+  }
+  if (remainingRoute) {
+    remainingRoute.setLatLngs(routePoints);
+  } else {
+    remainingRoute = L.polyline(routePoints, { color: 'blue', weight: 4 }).addTo(map);
+  }
+  if (shipmentMarker) {
+    shipmentMarker.setLatLng(originCoord);
+  } else {
+    shipmentMarker = L.circleMarker(originCoord, { radius: 12, color: 'black', fillColor: 'red', fillOpacity: 1, weight: 2 }).addTo(map);
+    shipmentMarker.bindPopup('ERASE Shipment 001');
+  }
 }
 
-// Start shipment animation and compute ETA based on input total transit time
-function startShipment(){
+var map = L.map('map').setView([35, -105], 4);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  maxZoom: 18,
+  subdomains: ['a', 'b', 'c', 'd']
+}).addTo(map);
+resetMapRoute();
+L.marker(originCoord).addTo(map).bindPopup('Origin: Pullman, WA');
+L.marker(destinationCoord).addTo(map).bindPopup('Destination: Guatemala');
 
-var days = Number(document.getElementById("daysInput").value)
-var hours = Number(document.getElementById("hoursInput").value)
-var minutes = Number(document.getElementById("minutesInput").value)
-var seconds = Number(document.getElementById("secondsInput").value)
+var totalDistance = haversineDistance(originCoord[0], originCoord[1], destinationCoord[0], destinationCoord[1]);
+document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' miles';
 
-totalTransitSeconds =
-days*86400 + hours*3600 + minutes*60 + seconds
-
-if(totalTransitSeconds <= 0) return
-
-startTime = Date.now()
-
-document.getElementById("status").innerText = "In Transit"
-
-var etaTime =
-new Date(Date.now() + totalTransitSeconds*1000)
-
-document.getElementById("eta").innerText =
-etaTime.toLocaleTimeString()
-
-if(animationInterval) clearInterval(animationInterval)
-
-animationInterval = setInterval(updateShipmentPosition,100)
-
+function updateShipmentPosition() {
+  if (!startTime || totalTransitSeconds <= 0) return;
+  var elapsedSeconds = (Date.now() - startTime) / 1000;
+  var progress = elapsedSeconds / totalTransitSeconds;
+  if (progress > 1) progress = 1;
+  var index = Math.floor(progress * (routePoints.length - 1));
+  if (index < 0) index = 0;
+  var position = routePoints[index];
+  shipmentMarker.setLatLng(position);
+  completedRoute.setLatLngs(routePoints.slice(0, index + 1));
+  remainingRoute.setLatLngs(routePoints.slice(index));
+  document.getElementById('timer').innerText = elapsedSeconds.toFixed(1) + ' s';
+  var traveled = totalDistance * progress;
+  var remaining = totalDistance - traveled;
+  document.getElementById('remaining').innerText = remaining.toFixed(2) + ' miles';
+  document.getElementById('progress').innerText = (progress * 100).toFixed(1) + '%';
+  document.getElementById('distance').innerText = traveled.toFixed(2) + ' miles';
+  shipmentMarker.bindPopup('Shipment ERASE-001<br>' + (progress * 100).toFixed(1) + '% complete');
+  if (progress >= 1) {
+    clearInterval(animationInterval);
+    animationInterval = null;
+    document.getElementById('status').innerText = 'Delivered';
+  }
 }
 
-// Update shipment marker along the route and refresh UI stats each tick
-function updateShipmentPosition(){
-
-var elapsedSeconds =
-(Date.now() - startTime)/1000
-
-var progress = elapsedSeconds / totalTransitSeconds
-
-if(progress > 1) progress = 1
-
-var index = Math.floor(progress * routePoints.length)
-
-if(index >= routePoints.length)
-index = routePoints.length - 1
-
-var position = routePoints[index]
-
-shipmentMarker.setLatLng(position)
-
-var completedPoints =
-routePoints.slice(0,index+1)
-
-var remainingPoints =
-routePoints.slice(index)
-
-completedRoute.setLatLngs(completedPoints)
-
-remainingRoute.setLatLngs(remainingPoints)
-
-// Update timer
-document.getElementById("timer").innerText =
-elapsedSeconds.toFixed(1) + " s"
-
-// Update distance traveled
-var traveled =
-totalDistance * progress
-
-var remaining = totalDistance - traveled
-
-document.getElementById("remaining").innerText =
-remaining.toFixed(2) + " miles"
-
-document.getElementById("progress").innerText =
-(progress*100).toFixed(1) + "%"
-
-document.getElementById("distance").innerText =
-traveled.toFixed(2) + " miles"
-
-shipmentMarker.bindPopup(
-"Shipment ERASE-001<br>" +
-(progress*100).toFixed(1) + "% complete"
-)
-
-if(progress >= 1){
-clearInterval(animationInterval)
-document.getElementById("status").innerText = "Delivered"
+function startShipment() {
+  if (totalTransitSeconds <= 0) return;
+  if (animationInterval) clearInterval(animationInterval);
+  startTime = Date.now();
+  document.getElementById('status').innerText = 'In Transit';
+  var etaTime = new Date(Date.now() + totalTransitSeconds * 1000);
+  document.getElementById('eta').innerText = etaTime.toLocaleTimeString();
+  animationInterval = setInterval(updateShipmentPosition, 100);
 }
 
-
+function pauseShipment() {
+  if (animationInterval) {
+    clearInterval(animationInterval);
+    animationInterval = null;
+  }
+  document.getElementById('status').innerText = 'Paused';
 }
 
-// Pause the running shipment animation
-function pauseShipment(){
-
-if(animationInterval){
-clearInterval(animationInterval)
+function resetShipment() {
+  if (animationInterval) {
+    clearInterval(animationInterval);
+    animationInterval = null;
+  }
+  startTime = null;
+  resetMapRoute();
+  totalDistance = haversineDistance(originCoord[0], originCoord[1], destinationCoord[0], destinationCoord[1]);
+  document.getElementById('timer').innerText = '0 s';
+  document.getElementById('distance').innerText = '0 miles';
+  document.getElementById('remaining').innerText = totalDistance.toFixed(2) + ' miles';
+  document.getElementById('progress').innerText = '0%';
+  document.getElementById('status').innerText = 'Waiting';
+  document.getElementById('eta').innerText = '--';
 }
 
-document.getElementById("status").innerText = "Paused"
-
+var addShipmentBtn = document.getElementById('addShipmentBtn');
+var startShipmentBtn = document.getElementById('startShipmentBtn');
+var pauseShipmentBtn = document.getElementById('pauseShipmentBtn');
+var resetShipmentBtn = document.getElementById('resetShipmentBtn');
+var shipmentModal = document.getElementById('shipmentModal');
+var closeShipmentModal = document.getElementById('closeShipmentModal');
+function geocodeCity(city, callback) {
+  fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(city))
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.length > 0) {
+        var lat = parseFloat(data[0].lat);
+        var lng = parseFloat(data[0].lon);
+        callback([lat, lng]);
+      } else {
+        callback(null);
+      }
+    })
+    .catch(error => {
+      console.error('Geocoding error:', error);
+      callback(null);
+    });
 }
 
-// Reset all shipment state and UI values back to initial starting conditions
-function resetShipment(){
+var shipmentForm = document.getElementById('shipmentForm');
+var originLatInput = document.getElementById('originLat');
+var originLngInput = document.getElementById('originLng');
+var destLatInput = document.getElementById('destLat');
+var destLngInput = document.getElementById('destLng');
+var transitDaysInput = document.getElementById('transitDays');
+var transitHoursInput = document.getElementById('transitHours');
+var transitMinutesInput = document.getElementById('transitMinutes');
+var transitSecondsInput = document.getElementById('transitSeconds');
 
-if(animationInterval){
-clearInterval(animationInterval)
+addShipmentBtn.addEventListener('click', function () {
+  shipmentModal.style.display = 'block';
+});
+closeShipmentModal.addEventListener('click', function () {
+  shipmentModal.style.display = 'none';
+});
+startShipmentBtn.addEventListener('click', startShipment);
+pauseShipmentBtn.addEventListener('click', pauseShipment);
+resetShipmentBtn.addEventListener('click', resetShipment);
+
+shipmentForm.addEventListener('submit', function (event) {
+  event.preventDefault();
+  var originCity = document.getElementById('originCity').value;
+  var destCity = document.getElementById('destCity').value;
+  var days = Number(document.getElementById('transitDays').value);
+  var hours = Number(document.getElementById('transitHours').value);
+  var minutes = Number(document.getElementById('transitMinutes').value);
+  var seconds = Number(document.getElementById('transitSeconds').value);
+  totalTransitSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
+  if (totalTransitSeconds <= 0) {
+    return;
+  }
+
+  // Geocode origin city
+  geocodeCity(originCity, function(originLatLng) {
+    if (!originLatLng) {
+      alert('Could not find coordinates for origin city: ' + originCity);
+      return;
+    }
+    // Geocode destination city
+    geocodeCity(destCity, function(destLatLng) {
+      if (!destLatLng) {
+        alert('Could not find coordinates for destination city: ' + destCity);
+        return;
+      }
+      originCoord = [originLatLng[0], originLatLng[1]];
+      destinationCoord = [destLatLng[0], destLatLng[1]];
+      resetShipment();
+      shipmentModal.style.display = 'none';
+    });
+  });
+});
+
+var workshopMarkers = {{ workshop_markers_json|safe }};
+var workshopMarkerLayers = [];
+var todayIso = new Date().toLocaleDateString('en-CA');
+
+function getWorkshopStatus(location) {
+  if (!location.date) return 'unknown';
+  if (location.date === todayIso) return 'today';
+  return location.date > todayIso ? 'future' : 'past';
 }
 
-startTime = null
-
-shipmentMarker.setLatLng(origin)
-
-completedRoute.setLatLngs([])
-
-remainingRoute.setLatLngs(routePoints)
-
-document.getElementById("timer").innerText = "0 s"
-document.getElementById("distance").innerText = "0 miles"
-document.getElementById("remaining").innerText =
-totalDistance.toFixed(2) + " miles"
-
-document.getElementById("progress").innerText = "0%"
-document.getElementById("status").innerText = "Waiting"
-
-shipmentMarker.bindPopup("Shipment ERASE-001<br>0% complete")
-
+function getLocationText(location) {
+  return [
+    location.title,
+    location.city,
+    location.address,
+    location.description
+  ].filter(Boolean).join(' ').toLowerCase();
 }
 
-// Initialize Leaflet map and tile layer
-var map = L.map('map').setView([35,-105],4)
-
-L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-{ attribution:'OpenStreetMap'}
-).addTo(map)
-
-// Build route points and draw route polylines
-var routePoints = createArc(origin,destination)
-
-var completedRoute = L.polyline([],{
-color:'green',
-weight:4
-}).addTo(map)
-
-var remainingRoute = L.polyline(routePoints,{
-color:'blue',
-weight:4
-}).addTo(map)
-
-map.fitBounds(routePoints)
-
-// Origin marker
-L.marker(origin).addTo(map)
-.bindPopup("Origin: Pullman, WA")
-
-// Destination marker
-L.marker(destination).addTo(map)
-.bindPopup("Destination: Guatemala")
-
-// Animated shipment marker
-var shipmentMarker = L.circleMarker(origin,{
-radius:12,
-color:'black',
-fillColor:'red',
-fillOpacity:1,
-weight:2
-}).addTo(map)
-
-shipmentMarker.bindPopup("ERASE Shipement 001")
-
-
-// Utility function to update marker
-function updateShipment(){
-
-var hours = Number(document.getElementById("hoursInput").value)
-
-var totalHours = Number(document.getElementById("totalHoursInput").value)
-
-if(totalHours <= 0) return
-
-var progress = hours / totalHours
-
-if(progress < 0) progress = 0
-if(progress > 1) progress = 1
-
-var lat =
-origin[0] + (destination[0] - origin[0]) * progress
-
-var lng =
-origin[1] + (destination[1] - origin[1]) * progress
-
-var position = [lat,lng]
-
-// Move marker
-shipmentMarker.setLatLng(position)
-
-// Update completed route
-completedRoute.setLatLngs([origin, position])
-
-// Update remaining route
-remainingRoute.setLatLngs([position, destination])
-
+function renderCityOptions(locations) {
+  var cityFilter = document.getElementById('cityFilter');
+  var selectedCity = cityFilter.value;
+  var cities = [];
+  locations.forEach(function (location) {
+    if (location.city && cities.indexOf(location.city) === -1) {
+      cities.push(location.city);
+    }
+  });
+  cities.sort(function (a, b) { return a.localeCompare(b); });
+  cityFilter.innerHTML = '<option value="">All cities</option>';
+  cities.forEach(function (city) {
+    var option = document.createElement('option');
+    option.value = city;
+    option.textContent = city;
+    cityFilter.appendChild(option);
+  });
+  cityFilter.value = cities.indexOf(selectedCity) === -1 ? '' : selectedCity;
 }
 
+function filterWorkshops() {
+  var searchValue = document.getElementById('workshopSearch').value.trim().toLowerCase();
+  var cityValue = document.getElementById('cityFilter').value;
+  var statusValue = document.getElementById('statusFilter').value;
+  var startDate = document.getElementById('startDateFilter').value;
+  var endDate = document.getElementById('endDateFilter').value;
+  var futureOnly = document.getElementById('futureOnlyFilter').checked;
+
+  return workshopMarkers.filter(function (location) {
+    var status = getWorkshopStatus(location);
+    if (searchValue && getLocationText(location).indexOf(searchValue) === -1) return false;
+    if (cityValue && location.city !== cityValue) return false;
+    if (statusValue && status !== statusValue) return false;
+    if (futureOnly && status !== 'future' && status !== 'today') return false;
+    if (startDate && location.date < startDate) return false;
+    if (endDate && location.date > endDate) return false;
+    return true;
+  });
+}
+
+function renderWorkshopMarkers(locations) {
+  workshopMarkerLayers.forEach(function (marker) {
+    map.removeLayer(marker);
+  });
+  workshopMarkerLayers = [];
+  locations.forEach(function (location) {
+    var marker = L.marker([location.latitude, location.longitude]).addTo(map);
+    marker.bindPopup(buildPopup(location));
+    workshopMarkerLayers.push(marker);
+  });
+}
+
+function updateFilterSummary(filteredLocations) {
+  var summary = document.getElementById('filterSummary');
+  var count = filteredLocations.length;
+  var total = workshopMarkers.length;
+  summary.textContent = 'Showing ' + count + ' of ' + total + ' workshop' + (total === 1 ? '.' : 's.');
+}
+
+function updateWorkshopFilters() {
+  var filteredLocations = filterWorkshops();
+  renderWorkshopMarkers(filteredLocations);
+  buildEventList(filteredLocations);
+  updateFilterSummary(filteredLocations);
+}
+
+function clearWorkshopFilters() {
+  document.getElementById('workshopSearch').value = '';
+  document.getElementById('cityFilter').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('startDateFilter').value = '';
+  document.getElementById('endDateFilter').value = '';
+  document.getElementById('futureOnlyFilter').checked = false;
+  updateWorkshopFilters();
+}
+
+function buildPopup(location) {
+  var html = '<strong>' + location.title + '</strong><br>';
+  if (location.date) { html += '<em>' + location.date + '</em><br>'; }
+  if (location.city) { html += location.city + '<br>'; }
+  else if (location.address) { html += location.address + '<br>'; }
+  if (location.description) { html += '<div style="margin-top:8px;">' + location.description + '</div>'; }
+  if (location.photos && location.photos.length) {
+    html += '<div style="margin-top:10px;">';
+    location.photos.forEach(function (url) {
+      html += '<img src="' + url + '" alt="' + location.title + '" style="width:100px; display:block; margin-top:8px;"/>';
+    });
+    html += '</div>';
+  }
+  return html;
+}
+
+function buildEventList(locations) {
+  var container = document.getElementById('event-list');
+  container.innerHTML = '';
+  if (!locations.length) {
+    var emptyText = workshopMarkers.length ? 'No workshops match the current filters.' : 'No workshop locations yet. Use the Django admin area to add new pins and photos.';
+    container.innerHTML = '<div class="empty-state"><strong>' + emptyText + '</strong></div>';
+    return;
+  }
+  locations.forEach(function (location) {
+    var card = document.createElement('article');
+    card.className = 'event-card';
+    var header = document.createElement('div');
+    header.className = 'event-card-header';
+    var title = document.createElement('h3');
+    title.textContent = location.title;
+    header.appendChild(title);
+    var deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.innerHTML = '&times;';
+    deleteBtn.onclick = function() { 
+      console.log('Delete button clicked for workshop ID:', location.id);
+      deleteWorkshop(location.id); 
+    };
+    header.appendChild(deleteBtn);
+    card.appendChild(header);
+    if (location.date) {
+      var date = document.createElement('p');
+      date.innerHTML = '<strong>Date:</strong> ' + location.date;
+      card.appendChild(date);
+    }
+    var status = document.createElement('p');
+    status.innerHTML = '<strong>Status:</strong> ' + getWorkshopStatus(location).replace(/^\w/, function (letter) { return letter.toUpperCase(); });
+    card.appendChild(status);
+    if (location.city) {
+      var city = document.createElement('p');
+      city.innerHTML = '<strong>City:</strong> ' + location.city;
+      card.appendChild(city);
+    }
+    if (location.address && location.address !== location.city) {
+      var address = document.createElement('p');
+      address.innerHTML = '<strong>Location:</strong> ' + location.address;
+      card.appendChild(address);
+    }
+    if (location.description) {
+      var description = document.createElement('p');
+      description.textContent = location.description;
+      card.appendChild(description);
+    }
+    if (location.photos) {
+      location.photos.forEach(function (photoUrl) {
+        var image = document.createElement('img');
+        image.src = photoUrl;
+        image.alt = location.title;
+        card.appendChild(image);
+      });
+    }
+    container.appendChild(card);
+  });
+}
+
+function deleteWorkshop(workshopId) {
+  console.log('deleteWorkshop called with ID:', workshopId);
+  if (confirm('Are you sure you want to delete this workshop?')) {
+    console.log('User confirmed deletion');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    console.log('CSRF token element:', csrfToken);
+    if (!csrfToken) {
+      alert('CSRF token not found');
+      return;
+    }
+    const csrfValue = csrfToken.value;
+    console.log('CSRF token value:', csrfValue);
+    
+    var deleteUrl = "{% url 'pages:shipment_map' %}";
+    fetch(deleteUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'delete_workshop=' + workshopId + '&csrfmiddlewaretoken=' + csrfValue
+    })
+    .then(response => {
+      console.log('Response received:', response);
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Response data:', data);
+      if (data.success) {
+        console.log('Success - reloading page');
+        location.reload();
+      } else {
+        console.log('Error:', data.error);
+        if (data.error === 'Authentication required') {
+          alert('You must be logged in as an admin to delete workshops.');
+          window.location.href = "{% url 'pages:login' %}";
+        } else {
+          alert('Error deleting workshop: ' + data.error);
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Fetch error:', error);
+      alert('Error deleting workshop: ' + error.message);
+    });
+  } else {
+    console.log('User cancelled deletion');
+  }
+}
+
+function updatePinForm(latlng) {
+  document.getElementById('pinLatitude').value = latlng.lat.toFixed(6);
+  document.getElementById('pinLongitude').value = latlng.lng.toFixed(6);
+  document.getElementById('pinCoordinates').innerText = latlng.lat.toFixed(5) + ', ' + latlng.lng.toFixed(5);
+}
+
+function cancelPinPlacement() {
+  if (newPinMarker) {
+    map.removeLayer(newPinMarker);
+    newPinMarker = null;
+  }
+  if (pinHint) { pinHint.innerText = 'Click the button, then click the map to place a new pin.'; }
+  if (pinModal) { pinModal.style.display = 'none'; }
+}
+
+var newPinMarker = null;
+var addPinButton = document.getElementById('addPinButton');
+var pinHint = document.getElementById('pinHint');
+var pinModal = document.getElementById('pinModal');
+var closePinModal = document.getElementById('closePinModal');
+var cancelPinButton = document.getElementById('cancelPinButton');
+
+if (addPinButton) {
+  addPinButton.addEventListener('click', function () {
+    if (pinHint) { pinHint.innerText = 'Click anywhere on the map to place a new workshop pin.'; }
+    map.once('click', function (e) {
+      var latlng = e.latlng;
+      if (newPinMarker) { map.removeLayer(newPinMarker); }
+      newPinMarker = L.marker(latlng, { draggable: true }).addTo(map);
+      newPinMarker.on('dragend', function (event) { updatePinForm(event.target.getLatLng()); });
+      updatePinForm(latlng);
+      if (pinModal) { pinModal.style.display = 'block'; }
+      map.panTo(latlng);
+    });
+  });
+}
+
+if (closePinModal) { closePinModal.addEventListener('click', cancelPinPlacement); }
+if (cancelPinButton) { cancelPinButton.addEventListener('click', cancelPinPlacement); }
+window.addEventListener('click', function (event) {
+  if (event.target === shipmentModal) { shipmentModal.style.display = 'none'; }
+  if (event.target === pinModal) { pinModal.style.display = 'none'; }
+});
+
+renderCityOptions(workshopMarkers);
+['workshopSearch', 'cityFilter', 'statusFilter', 'startDateFilter', 'endDateFilter', 'futureOnlyFilter'].forEach(function (id) {
+  var element = document.getElementById(id);
+  var eventName = element.type === 'search' ? 'input' : 'change';
+  element.addEventListener(eventName, updateWorkshopFilters);
+});
+document.getElementById('clearWorkshopFilters').addEventListener('click', clearWorkshopFilters);
+updateWorkshopFilters();
+
+var allPoints = [originCoord, destinationCoord];
+workshopMarkers.forEach(function (loc) { allPoints.push([loc.latitude, loc.longitude]); });
+if (allPoints.length > 2) {
+  map.fitBounds(allPoints);
+} else {
+  map.fitBounds(routePoints);
+}
 </script>
-
 </body>
 </html>

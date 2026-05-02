@@ -1,7 +1,7 @@
 from calendar import month_name
 from datetime import datetime
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
@@ -9,9 +9,11 @@ from django.contrib.auth.models import Group
 from django.shortcuts import render
 import sys
 import os
+import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from event_calendar.calendar_maker import get_calendar_html
+from .models import Workshop
 
 def home(request):
     """Render the homepage"""
@@ -133,4 +135,67 @@ class CustomLoginView(LoginView):
     redirect_authenticated_user = False
 
 def shipment_map(request):
-    return render(request, "shipment_map.html")
+    if request.method == 'POST':
+        print(f"DEBUG: POST request received. User authenticated: {request.user.is_authenticated}, is_staff: {request.user.is_staff if request.user.is_authenticated else 'N/A'}")
+        # Check for delete request first (AJAX)
+        delete_workshop_id = request.POST.get('delete_workshop')
+        print(f"DEBUG: delete_workshop_id: {delete_workshop_id}")
+        if delete_workshop_id:
+            print("DEBUG: Processing delete request")
+            if not (request.user.is_authenticated and request.user.is_staff):
+                print("DEBUG: User not authenticated or not staff")
+                return JsonResponse({'success': False, 'error': 'Authentication required'})
+            try:
+                workshop = Workshop.objects.get(id=int(delete_workshop_id))
+                print(f"DEBUG: Found workshop: {workshop.title}, deleting...")
+                workshop.delete()
+                print("DEBUG: Workshop deleted successfully")
+                return JsonResponse({'success': True})
+            except (Workshop.DoesNotExist, ValueError) as e:
+                print(f"DEBUG: Error deleting workshop: {e}")
+                return JsonResponse({'success': False, 'error': 'Workshop not found'})
+
+        # Regular POST requests require authentication
+        if not (request.user.is_authenticated and request.user.is_staff):
+            return redirect('pages:login')
+
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        date = request.POST.get('date')
+        city = request.POST.get('city', '').strip()
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        photo = request.FILES.get('photo')
+
+        if title and date and latitude and longitude:
+            Workshop.objects.create(
+                title=title,
+                description=description,
+                date=date,
+                city=city,
+                latitude=float(latitude),
+                longitude=float(longitude),
+                photo=photo,
+                created_by=request.user,
+            )
+        return redirect('pages:shipment_map')
+
+    workshops = Workshop.objects.all()
+    workshop_markers = []
+    for workshop in workshops:
+        marker = {
+            'id': workshop.id,
+            'title': workshop.title,
+            'description': workshop.description,
+            'date': workshop.date.strftime('%Y-%m-%d'),
+            'city': workshop.city,
+            'latitude': workshop.latitude,
+            'longitude': workshop.longitude,
+            'address': workshop.city,
+            'photos': [workshop.photo.url] if workshop.photo else [],
+        }
+        workshop_markers.append(marker)
+    return render(request, "shipment_map.html", {
+        "workshop_markers_json": json.dumps(workshop_markers),
+        "show_add_pin": request.user.is_authenticated and request.user.is_staff,
+    })

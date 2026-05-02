@@ -12,6 +12,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='pages:home'), name='logout'),
     path('signup/', views.signup, name='signup'),
     path('calendar/', views.calendar, name='calendar'),
-    path('shipment-map/', views.shipment_map),
+    path('shipment-map/', views.shipment_map, name='shipment_map'),
     path('studentdb/', views.studentdb, name='studentdb')
 ]
