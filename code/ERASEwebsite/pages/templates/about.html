@@ -4,11 +4,8 @@
 {% block title %}{% trans "About" %} - Project ERASE{% endblock %}
     
 {% block extra_styles %}
-<style>
-    .quote {
-        color: #0283FF;
-    }
-</style>
+{% load static %}
+<link rel="stylesheet" href="{% static 'pages/css/about.css' %}">
 {% endblock %}
     
 {% block content %}
