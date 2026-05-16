@@ -2,6 +2,11 @@
 {% load i18n %}
 
 {% block title %}{% trans "Contact" %} - Project ERASE{% endblock %}
+
+{% block extra_styles %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'pages/css/contact.css' %}"
+{% endblock %}
     
 {% block content %}
     
@@ -11,7 +16,7 @@
     
     <main class="container">
         <section class="content">
-            <h2 style="text-align: center">
+            <h2>
                 {% trans "For any and all questions about the project, contact us at theprojecterase@gmail.com." %}
             </h2>
         </section>
