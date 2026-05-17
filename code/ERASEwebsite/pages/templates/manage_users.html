@@ -1,12 +1,14 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Manage Users" %} - Project ERASE{% endblock %}
 
 {% block extra_styles %}
-{% load static %}
 <link rel="stylesheet" href="{% static 'pages/css/manage_users.css' %}">
 {% endblock %}
+
+{% trans "Revoke admin privileges from" as revoke_text %}
+{% trans "Grant admin privileges to" as grant_text %}
 
 {% block content %}
 <div class="page-header">
@@ -49,7 +51,7 @@
                                 <input type="hidden" name="user_id" value="{{ u.pk }}">
                                 <input type="hidden" name="action" value="revoke">
                                 <button type="submit" class="btn-revoke"
-                                    onclick="return confirm('{% trans "Revoke admin privileges from" %} {{ u.username }}?')>
+                                    onclick="return confirm('{{ revoke_text|escapejs }} {{ u.username|escapejs }}?')">
                                     {% trans "Revoke Admin" %}
                                 </button>
                             </form>
@@ -59,7 +61,7 @@
                                 <input type="hidden" name="user_id" value="{{ u.pk }}">
                                 <input type="hidden" name="action" value="grant">
                                 <button type="submit" class="btn-grant"
-                                    onclick="return confirm('{% trans "Grant admin privileges to" %} {{ u.username }}?')">
+                                    onclick="return confirm('{{ grant_text|escapejs }} {{ u.username|escapejs }}?')">
                                     {% trans "Grant Admin" %}
                                 </button>
                             </form>
