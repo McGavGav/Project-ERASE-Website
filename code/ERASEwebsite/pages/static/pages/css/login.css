@@ -1,0 +1,59 @@
+/* Login page styles */
+
+.login-card {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: #fff;
+}
+
+.login-card-title {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-alert {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.login-field-group {
+    margin-bottom: 1.5rem;
+}
+
+.login-field-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.login-field-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.login-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.login-submit {
+    width: 100%;
+    text-align: center;
+    margin: 0;
+}
+
+.login-note {
+    text-align: center;
+    margin-top: 1rem;
+}

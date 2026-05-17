@@ -2,63 +2,50 @@
 {% load i18n %}
 
 {% block title %}{% trans "Login" %} - Project ERASE{% endblock %}
-    
+
+{% block extra_styles %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'pages/css/login.css' %}">
+{% endblock %}
+
 {% block content %}
-    
-    <main class="container">
+    <main class="container login-page">
         <div class="content">
-            <div style="max-width: 400px; margin: 0 auto; padding: 2rem; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                <h2 style="text-align: center; margin-bottom: 1.5rem;">{% trans "Sign In" %}</h2>
-                
+            <div class="login-card">
+                <h2 class="login-card-title">{% trans "Sign In" %}</h2>
+
                 {% if form.non_field_errors %}
-                    <div style="background-color: #f8d7da; color: #721c24; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <div class="login-alert">
                         {{ form.non_field_errors }}
                     </div>
                 {% endif %}
-                
+
                 <form method="post" novalidate>
                     {% csrf_token %}
-                    
-                    <div style="margin-bottom: 1.5rem;">
-                        <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{% trans "Username" %}</label>
+
+                    <div class="login-field-group">
+                        <label for="{{ form.username.id_for_label }}" class="login-field-label">{% trans "Username" %}</label>
                         {{ form.username }}
-                        <style>
-                            input[name="{{ form.username.html_name }}"] {
-                                width: 100%;
-                                padding: 0.5rem;
-                                border: 1px solid #ccc;
-                                border-radius: 4px;
-                            }
-                        </style>
                         {% if form.username.errors %}
-                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.username.errors }}</div>
+                            <div class="login-error">{{ form.username.errors }}</div>
                         {% endif %}
                     </div>
 
-                    <div style="margin-bottom: 1.5rem;">
-                        <label for="{{ form.password.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: bold;">{% trans "Password" %}</label>
+                    <div class="login-field-group">
+                        <label for="{{ form.password.id_for_label }}" class="login-field-label">{% trans "Password" %}</label>
                         {{ form.password }}
-                        <style>
-                            input[name="{{ form.password.html_name }}"] {
-                                width: 100%;
-                                padding: 0.5rem;
-                                border: 1px solid #ccc;
-                                border-radius: 4px;
-                            }
-                        </style>
                         {% if form.password.errors %}
-                            <div style="color: #dc3545; font-size: 0.875rem; margin-top: 0.25rem;">{{ form.password.errors }}</div>
+                            <div class="login-error">{{ form.password.errors }}</div>
                         {% endif %}
                     </div>
-                    
-                    <button type="submit" class="btn" style="width: 100%; text-align: center; margin: 0;">{% trans "Sign In" %}</button>
+
+                    <button type="submit" class="btn login-submit">{% trans "Sign In" %}</button>
                 </form>
-                
-                <p style="text-align: center; margin-top: 1rem;">
+
+                <p class="login-note">
                     {% trans "Don't have an account?" %} <a href="{% url 'pages:signup' %}">{% trans "Sign up here" %}</a>.
                 </p>
             </div>
         </div>
     </main>
-    
 {% endblock %}
