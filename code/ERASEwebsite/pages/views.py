@@ -1,240 +1,74 @@
-from datetime import datetime
-from datetime import date
-from django.db import models
-from django.db.models import Count
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse
-from django.contrib import messages
-from django.contrib.auth.views import LoginView, LogoutView
-from django.urls import reverse, reverse_lazy
+from django.views import View
+from django.views.generic import TemplateView
+from django.contrib.auth.views import LoginView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, User
-from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.db.models import Sum
-from .models import FundingEntry, WorkshopAttendance, StudentSupport, SocialMediaMetric
-from .forms import FundingEntryForm, WorkshopAttendanceForm, StudentSupportForm, SocialMediaMetricForm, AccountEmailForm
-from django.urls import reverse
-from event_calendar.models import Event, RSVP
-from event_calendar.forms import EventForm
-import sys
-import os
-import json
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-from event_calendar.calendar_maker import get_calendar_html
-from .models import Student
-from .models import Workshop
-
-def home(request):
-    """Render the homepage"""
-    return render(request, 'home.html')
+from .forms import AccountEmailForm
 
 
-def about(request):
-    """Render the about page"""
-    return render(request, 'about.html')
+class HomeView(TemplateView):
+    """Render the homepage."""
+    template_name = 'home.html'
 
 
-def contact(request):
-    """Render the contact page"""
-    return render(request, 'contact.html')
+class AboutView(TemplateView):
+    """Render the about page."""
+    template_name = 'about.html'
 
 
-def signup(request):
-    """Handle user sign-up"""
-    if request.method == 'POST':
+class ContactView(TemplateView):
+    """Render the contact page."""
+    template_name = 'contact.html'
+
+
+class SignUpView(View):
+    """Handle user sign-up and initial group assignment."""
+    template_name = 'signup.html'
+
+    def get(self, request, *args, **kwargs):
+        form = UserCreationForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-
-            # users automatically into normal user perms
             normal_users_group, _ = Group.objects.get_or_create(name='normal users')
             normal_users_group.user_set.add(user)
-
             return redirect('pages:login')
-    else:
-        form = UserCreationForm()
-    return render(request, 'signup.html', {'form': form})
+        return render(request, self.template_name, {'form': form})
 
-def calendar(request):
-    """Render the calendar page"""
-    # Get the current month and year.
-    now = datetime.now()
-    current_month = request.GET.get('month', now.month)
-    current_year = request.GET.get('year', now.year)
-
-    try:
-        current_month = int(current_month)
-        current_year = int(current_year)
-    except (ValueError, TypeError):
-        current_month = now.month
-        current_year = now.year
-    
-    month_events = Event.objects.filter(date__year=current_year, date__month=current_month)
-    events_by_date = {}
-    for event in month_events:
-        events_by_date.setdefault(event.date, []).append(event)
-    
-    calendar_html = get_calendar_html(current_year, current_month, events_by_date)
-
-    if current_month == 1:
-        prev_month = 12
-        prev_year = current_year - 1
-    else:
-        prev_month = current_month - 1
-        prev_year = current_year
-    
-    if current_month == 12:
-        next_month = 1
-        next_year = current_year + 1
-    else:
-        next_month = current_month + 1
-        next_year = current_year
-
-    event_form = EventForm()
-    event_added = request.GET.get('event_added') == '1'
-
-    rsvped_ids = set()
-    if request.user.is_authenticated:
-        rsvped_ids = set(
-            RSVP.objects.filter(user=request.user, event__in=month_events)
-                .values_list('event_id', flat=True)
-        )
-
-    context = {
-        'calendar_html': calendar_html,
-        'current_month': current_month,
-        'current_year': current_year,
-        'display_date': date(current_year, current_month, 1),
-        'prev_month': prev_month,
-        'prev_year': prev_year,
-        'next_month': next_month,
-        'next_year': next_year,
-        'event_form': event_form,
-        'event_added': event_added,
-        'rsvped_ids': list(rsvped_ids),
-    }
-
-    return render(request, 'calendar.html', context)
-
-@login_required
-def add_event(request):
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-    
-    if request.method == 'POST':
-        form = EventForm(request.POST)
-
-        if form.is_valid():
-            form.save()
-            month = form.cleaned_data['date'].month
-            year = form.cleaned_data['date'].year
-
-            return redirect(f"{reverse('pages:calendar')}?month={month}&year={year}&event_added=1")
-    
-    return redirect('pages:calendar')
-
-@login_required
-def rsvp_event(request, event_id):
-    if request.method != 'POST':
-        return redirect('pages:calendar')
-    
-    event = get_object_or_404(Event, pk=event_id)
-
-    if not event.hasRSVP:
-        raise PermissionDenied
-    
-    rsvp, created = RSVP.objects.get_or_create(user=request.user, event=event)
-    if not created:
-        rsvp.delete()
-
-    return redirect(f"{reverse('pages:calendar')}?month={event.date.month}&year={event.date.year}")
-
-@login_required
-def rsvp_listing(request):
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-    
-    events = Event.objects.filter(hasRSVP=True).order_by('date', 'time')
-    events = events.annotate(rsvp_count=models.Count('rsvps'))
-    context = {'events': events}
-
-    return render(request, 'rsvp_listing.html', context)
-
-@login_required
-def rsvp_detail(request, event_id):
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-    
-    event = get_object_or_404(Event, pk=event_id, hasRSVP=True)
-    rsvps = event.rsvps.select_related('user').order_by('reserved_at')
-    context = {'event': event, 'rsvps': rsvps}
-
-    return render(request, 'rsvp_detail.html', context)
-
-def studentdb(request):
-
-    # admin/supers can add and delete students
-    if request.method == "POST" and (request.user.is_staff or request.user.is_superuser):
-        action = request.POST.get("action")
-
-        if action == "add":
-            Student.objects.create(
-                name=request.POST.get("name"),
-                gender=request.POST.get("gender"),
-                school=request.POST.get("school"),
-                photo=request.FILES.get("photo")
-            )
-
-        elif action == "bulk_add":
-            count_str = request.POST.get("bulk_count", "0")
-            count = int(count_str) if count_str.isdigit() else 0
-
-            for i in range(count):
-                name = request.POST.get(f"name_{i}")
-                gender = request.POST.get(f"gender_{i}")
-                school = request.POST.get(f"school_{i}")
-                photo = request.FILES.get(f"photo_{i}")
-
-                if name:
-                    Student.objects.create(
-                        name=name,
-                        gender=gender,
-                        school=school,
-                        photo=photo
-                    )
-
-        elif action == "delete":
-            Student.objects.filter(
-                name=request.POST.get("student_name")
-            ).delete()
-
-        return redirect("pages:studentdb")
-
-    students = Student.objects.all()
-
-    return render(request, "studentdb.html", {
-        "students": students
-    })
 
 class CustomLoginView(LoginView):
-    """Custom login view"""
+    """Custom login view."""
     template_name = 'login.html'
     redirect_authenticated_user = False
 
-@login_required
-def manage_users(request):
-    """Only the master account can grant/revoke admin privileges."""
-    if not request.user.is_superuser:
-        raise PermissionDenied
 
-    if request.method == 'POST':
+class ManageUsersView(LoginRequiredMixin, View):
+    """Master account view to grant/revoke admin privileges."""
+    template_name = 'manage_users.html'
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        users = User.objects.exclude(pk=request.user.pk).order_by('username')
+        return render(request, self.template_name, {'users': users})
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
+
         target_id = request.POST.get('user_id')
         action = request.POST.get('action')
         target_user = get_object_or_404(User, pk=target_id)
 
-        # Prevents the master account from being demoted
         if not target_user.is_superuser:
             if action == 'grant':
                 target_user.is_staff = True
@@ -245,290 +79,63 @@ def manage_users(request):
 
         return redirect('pages:manage_users')
 
-    users = User.objects.exclude(pk=request.user.pk).order_by('username')
-    return render(request, 'manage_users.html', {'users': users})
 
-def shipment_map(request):
-    if request.method == 'POST':
-        print(f"DEBUG: POST request received. User authenticated: {request.user.is_authenticated}, is_staff: {request.user.is_staff if request.user.is_authenticated else 'N/A'}")
-        # Check for delete request first (AJAX)
-        delete_workshop_id = request.POST.get('delete_workshop')
-        print(f"DEBUG: delete_workshop_id: {delete_workshop_id}")
-        if delete_workshop_id:
-            print("DEBUG: Processing delete request")
-            if not (request.user.is_authenticated and request.user.is_staff):
-                print("DEBUG: User not authenticated or not staff")
-                return JsonResponse({'success': False, 'error': 'Authentication required'})
-            try:
-                workshop = Workshop.objects.get(id=int(delete_workshop_id))
-                print(f"DEBUG: Found workshop: {workshop.title}, deleting...")
-                workshop.delete()
-                print("DEBUG: Workshop deleted successfully")
-                return JsonResponse({'success': True})
-            except (Workshop.DoesNotExist, ValueError) as e:
-                print(f"DEBUG: Error deleting workshop: {e}")
-                return JsonResponse({'success': False, 'error': 'Workshop not found'})
+class AccountView(LoginRequiredMixin, View):
+    """Display and manage current user profile and email settings."""
+    template_name = 'account.html'
 
-        # Regular POST requests require authentication
-        if not (request.user.is_authenticated and request.user.is_staff):
-            return redirect('pages:login')
+    def get(self, request, *args, **kwargs):
+        form = AccountEmailForm(instance=request.user)
+        return render(request, self.template_name, {
+            'email_form': form,
+            'role': self._get_user_role(request.user),
+        })
 
-        title = request.POST.get('title', '').strip()
-        description = request.POST.get('description', '').strip()
-        date = request.POST.get('date')
-        city = request.POST.get('city', '').strip()
-        latitude = request.POST.get('latitude')
-        longitude = request.POST.get('longitude')
-        photo = request.FILES.get('photo')
-
-        if title and date and latitude and longitude:
-            Workshop.objects.create(
-                title=title,
-                description=description,
-                date=date,
-                city=city,
-                latitude=float(latitude),
-                longitude=float(longitude),
-                photo=photo,
-                created_by=request.user,
-            )
-        return redirect('pages:shipment_map')
-
-    workshops = Workshop.objects.all()
-    workshop_markers = []
-    for workshop in workshops:
-        marker = {
-            'id': workshop.id,
-            'title': workshop.title,
-            'description': workshop.description,
-            'date': workshop.date.strftime('%Y-%m-%d'),
-            'city': workshop.city,
-            'latitude': workshop.latitude,
-            'longitude': workshop.longitude,
-            'address': workshop.city,
-            'photos': [workshop.photo.url] if workshop.photo else [],
-        }
-        workshop_markers.append(marker)
-        
-    return render(request, "shipment_map.html", {
-        "workshop_markers_json": json.dumps(workshop_markers),
-        "show_add_pin": request.user.is_authenticated and request.user.is_staff,
-    })
-
-@login_required
-def custom_admin(request):
-    """Custom admin dashboard — accessible to staff and superusers only."""
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-
-    total_users = User.objects.count()
-    staff_count = User.objects.filter(is_staff=True, is_superuser=False).count()
-    superuser_count = User.objects.filter(is_superuser=True).count()
-
-    context = {
-        'total_users': total_users,
-        'staff_count': staff_count,
-        'superuser_count': superuser_count,
-    }
-    return render(request, 'custom_admin.html', context)
-
-
-@login_required
-def reports(request):
-    """Reports dashboard — fundraising, workshops, students, and social media."""
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-
-    funding_form  = FundingEntryForm()
-    workshop_form = WorkshopAttendanceForm()
-    student_form  = StudentSupportForm()
-    social_form   = SocialMediaMetricForm()
-    active_tab    = request.GET.get('tab', 'fundraising')
-
-    if request.method == 'POST':
-        form_type = request.POST.get('form_type')
-        if form_type == 'funding':
-            funding_form = FundingEntryForm(request.POST)
-            if funding_form.is_valid():
-                funding_form.save()
-                messages.success(request, 'Funding entry added.')
-                return redirect(reverse('pages:reports') + '?tab=fundraising')
-            active_tab = 'fundraising'
-        elif form_type == 'workshop':
-            workshop_form = WorkshopAttendanceForm(request.POST)
-            if workshop_form.is_valid():
-                workshop_form.save()
-                messages.success(request, 'Workshop record added.')
-                return redirect(reverse('pages:reports') + '?tab=workshops')
-            active_tab = 'workshops'
-        elif form_type == 'student':
-            student_form = StudentSupportForm(request.POST)
-            if student_form.is_valid():
-                student_form.save()
-                messages.success(request, 'Student support entry added.')
-                return redirect(reverse('pages:reports') + '?tab=students')
-            active_tab = 'students'
-        elif form_type == 'social':
-            social_form = SocialMediaMetricForm(request.POST)
-            if social_form.is_valid():
-                social_form.save()
-                messages.success(request, 'Social media entry added.')
-                return redirect(reverse('pages:reports') + '?tab=social')
-            active_tab = 'social'
-
-    # --- Fundraising ---
-    year_filter = request.GET.get('year', '')
-    type_filter = request.GET.get('fund_type', '')
-    funding_entries = FundingEntry.objects.all()
-    if year_filter:
-        funding_entries = funding_entries.filter(date__year=year_filter)
-    if type_filter:
-        funding_entries = funding_entries.filter(fund_type=type_filter)
-    funding_total   = funding_entries.aggregate(total=Sum('amount'))['total'] or 0
-    donations_total = funding_entries.filter(fund_type='donation').aggregate(total=Sum('amount'))['total'] or 0
-    grants_total    = funding_entries.filter(fund_type='grant').aggregate(total=Sum('amount'))['total'] or 0
-    # Build year list from all entries for the filter dropdown
-    funding_years = sorted(
-        set(FundingEntry.objects.values_list('date__year', flat=True)),
-        reverse=True
-    )
-
-    # --- Workshops ---
-    workshops       = WorkshopAttendance.objects.all()
-    workshop_count  = workshops.count()
-    total_attendees = workshops.aggregate(total=Sum('attendee_count'))['total'] or 0
-    avg_attendees   = round(total_attendees / workshop_count, 1) if workshop_count else 0
-
-    # --- Students Supported ---
-    student_entries      = StudentSupport.objects.all()
-    current_year         = datetime.now().year
-    current_year_students = (
-        StudentSupport.objects.filter(year=current_year)
-        .aggregate(total=Sum('student_count'))['total'] or 0
-    )
-    all_time_students = StudentSupport.objects.aggregate(total=Sum('student_count'))['total'] or 0
-
-    # --- Social Media ---
-    platform_filter = request.GET.get('platform', '')
-    social_entries  = SocialMediaMetric.objects.all()
-    if platform_filter:
-        social_entries = social_entries.filter(platform=platform_filter)
-
-    context = {
-        'funding_form':  funding_form,
-        'workshop_form': workshop_form,
-        'student_form':  student_form,
-        'social_form':   social_form,
-        'active_tab':    active_tab,
-        # fundraising
-        'funding_entries':  funding_entries,
-        'year_filter':      year_filter,
-        'type_filter':      type_filter,
-        'funding_years':    funding_years,
-        'funding_total':    funding_total,
-        'donations_total':  donations_total,
-        'grants_total':     grants_total,
-        # workshops
-        'workshops':        workshops,
-        'workshop_count':   workshop_count,
-        'total_attendees':  total_attendees,
-        'avg_attendees':    avg_attendees,
-        # students
-        'student_entries':        student_entries,
-        'current_year':           current_year,
-        'current_year_students':  current_year_students,
-        'all_time_students':      all_time_students,
-        # social media
-        'social_entries':   social_entries,
-        'platform_filter':  platform_filter,
-        'platform_choices': SocialMediaMetric.PLATFORM_CHOICES,
-    }
-    return render(request, 'reports.html', context)
-
-
-@login_required
-def delete_funding(request, pk):
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-    entry = get_object_or_404(FundingEntry, pk=pk)
-    if request.method == 'POST':
-        entry.delete()
-        messages.success(request, 'Funding entry deleted.')
-    return redirect(reverse('pages:reports') + '?tab=fundraising')
-
-
-@login_required
-def delete_workshop(request, pk):
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-    workshop = get_object_or_404(WorkshopAttendance, pk=pk)
-    if request.method == 'POST':
-        workshop.delete()
-        messages.success(request, 'Workshop record deleted.')
-    return redirect(reverse('pages:reports') + '?tab=workshops')
-
-
-@login_required
-def delete_student(request, pk):
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-    entry = get_object_or_404(StudentSupport, pk=pk)
-    if request.method == 'POST':
-        entry.delete()
-        messages.success(request, 'Student support entry deleted.')
-    return redirect(reverse('pages:reports') + '?tab=students')
-
-
-@login_required
-def delete_social(request, pk):
-    if not (request.user.is_staff or request.user.is_superuser):
-        raise PermissionDenied
-    entry = get_object_or_404(SocialMediaMetric, pk=pk)
-    if request.method == 'POST':
-        entry.delete()
-        messages.success(request, 'Social media entry deleted.')
-    return redirect(reverse('pages:reports') + '?tab=social')
-
-@login_required
-def account(request):
-    """Display the current user's account details."""
-    user = request.user
-
-    if request.method == 'POST':
-        email_form = AccountEmailForm(request.POST, instance=user)
-        if email_form.is_valid():
-            email_form.save()
+    def post(self, request, *args, **kwargs):
+        form = AccountEmailForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
             messages.success(request, 'Email updated successfully.')
             return redirect('pages:account')
-    else:
-        email_form = AccountEmailForm(instance=user)
+        return render(request, self.template_name, {
+            'email_form': form,
+            'role': self._get_user_role(request.user),
+        })
 
-    groups = user.groups.values_list('name', flat=True)
-    if user.is_superuser:
-        role = 'Master'
-    elif user.is_staff:
-        role = 'Admin'
-    elif groups:
-        role = ', '.join(groups)
-    else:
-        role = 'User'
-    context = {
-        'role': role,
-        'email_form': email_form,
-    }
-    return render(request, 'account.html', context)
+    def _get_user_role(self, user):
+        if user.is_superuser:
+            return 'Master'
+        if user.is_staff:
+            return 'Admin'
+        groups = user.groups.values_list('name', flat=True)
+        return ', '.join(groups) if groups else 'User'
 
-@login_required
-def delete_account(request):
+
+class DeleteAccountView(LoginRequiredMixin, View):
     """Allow a non-superuser to delete their own account."""
-    if request.user.is_superuser:
-        raise PermissionDenied
-
-    if request.method == 'POST':
+    def post(self, request, *args, **kwargs):
+        if request.user.is_superuser:
+            raise PermissionDenied
         user = request.user
-        from django.contrib.auth import logout
         logout(request)
         user.delete()
         return redirect('pages:home')
 
-    return redirect('pages:account')
+    def get(self, request, *args, **kwargs):
+        return redirect('pages:account')
+
+
+class CustomAdminView(LoginRequiredMixin, View):
+    """Custom admin dashboard — accessible to staff and superusers."""
+    template_name = 'custom_admin.html'
+
+    def get(self, request, *args, **kwargs):
+        if not (request.user.is_staff or request.user.is_superuser):
+            raise PermissionDenied
+
+        context = {
+            'total_users': User.objects.count(),
+            'staff_count': User.objects.filter(is_staff=True, is_superuser=False).count(),
+            'superuser_count': User.objects.filter(is_superuser=True).count(),
+        }
+        return render(request, self.template_name, context)

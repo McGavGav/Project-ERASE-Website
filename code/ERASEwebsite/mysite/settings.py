@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'pages',
+    'students',
+    'workshops',
+    'reports',
     'event_calendar',
 ]
 

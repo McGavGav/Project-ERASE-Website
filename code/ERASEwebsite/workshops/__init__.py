@@ -1,0 +1,2 @@
+"""Workshops app package."""
+
