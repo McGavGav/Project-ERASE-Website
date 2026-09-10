@@ -1,5 +1,5 @@
 from calendar import HTMLCalendar
-from datetime import datetime
+from datetime import datetime, date
 from html import escape
 
 
@@ -79,18 +79,72 @@ class EventCalendar(HTMLCalendar):
         return ''.join(v)
 
 
+def resolve_month_year(year=None, month=None):
+    """
+    Parse and validate year and month inputs, defaulting to the current date.
+    
+    Returns:
+        tuple: (resolved_year: int, resolved_month: int)
+    """
+    now = datetime.now()
+    try:
+        y = int(year) if year is not None else now.year
+        m = int(month) if month is not None else now.month
+        if not (1 <= m <= 12):
+            m = now.month
+            y = now.year
+    except (ValueError, TypeError):
+        y, m = now.year, now.month
+    return y, m
+
+
+def get_navigation_dates(year, month):
+    """
+    Calculate previous and next month/year navigation coordinates and display date.
+    """
+    display_date = date(year, month, 1)
+    prev_month = 12 if month == 1 else month - 1
+    prev_year = year - 1 if month == 1 else year
+
+    next_month = 1 if month == 12 else month + 1
+    next_year = year + 1 if month == 12 else year
+
+    return {
+        'display_date': display_date,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'next_month': next_month,
+        'next_year': next_year,
+    }
+
+
 def get_calendar_html(year, month, events=None):
     """
-    Generate calendar HTML for a specific month
+    Generate calendar HTML for a specific month.
     
     Args:
         year: Year (e.g., 2026)
         month: Month (1-12)
-        events_dict: Dictionary of events with date strings as keys
-                    Example: {'2026-03-12': [{'title': 'Meeting', 'priority': 'high'}]}
+        events: Dictionary of events with date objects as keys
     
     Returns:
         HTML string for the calendar
     """
     calendar = EventCalendar(events=events)
     return calendar.formatmonth(year, month)
+
+
+def get_calendar_data(year=None, month=None, events=None):
+    """
+    Build full calendar rendering context including HTML and navigation coordinates.
+    """
+    resolved_year, resolved_month = resolve_month_year(year, month)
+    nav_dates = get_navigation_dates(resolved_year, resolved_month)
+    calendar_html = get_calendar_html(resolved_year, resolved_month, events=events)
+
+    return {
+        'current_year': resolved_year,
+        'current_month': resolved_month,
+        'calendar_html': calendar_html,
+        **nav_dates,
+    }

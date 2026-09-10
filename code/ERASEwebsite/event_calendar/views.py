@@ -1,4 +1,3 @@
-from datetime import datetime, date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views import View
@@ -9,7 +8,7 @@ from django.db.models import Count
 
 from .models import Event, RSVP
 from .forms import EventForm
-from .calendar_maker import get_calendar_html
+from .calendar_maker import get_calendar_data, resolve_month_year
 
 
 class StaffRequiredMixin(UserPassesTestMixin):
@@ -28,40 +27,16 @@ class CalendarView(View):
     template_name = 'calendar.html'
 
     def get(self, request, *args, **kwargs):
-        now = datetime.now()
-        current_month = request.GET.get('month', now.month)
-        current_year = request.GET.get('year', now.year)
-
-        try:
-            current_month = int(current_month)
-            current_year = int(current_year)
-        except (ValueError, TypeError):
-            current_month = now.month
-            current_year = now.year
+        year = request.GET.get('year')
+        month = request.GET.get('month')
+        current_year, current_month = resolve_month_year(year, month)
 
         month_events = Event.objects.filter(date__year=current_year, date__month=current_month)
         events_by_date = {}
         for event in month_events:
             events_by_date.setdefault(event.date, []).append(event)
 
-        calendar_html = get_calendar_html(current_year, current_month, events_by_date)
-
-        if current_month == 1:
-            prev_month = 12
-            prev_year = current_year - 1
-        else:
-            prev_month = current_month - 1
-            prev_year = current_year
-
-        if current_month == 12:
-            next_month = 1
-            next_year = current_year + 1
-        else:
-            next_month = current_month + 1
-            next_year = current_year
-
-        event_form = EventForm()
-        event_added = request.GET.get('event_added') == '1'
+        calendar_context = get_calendar_data(current_year, current_month, events=events_by_date)
 
         rsvped_ids = set()
         if request.user.is_authenticated:
@@ -71,16 +46,9 @@ class CalendarView(View):
             )
 
         context = {
-            'calendar_html': calendar_html,
-            'current_month': current_month,
-            'current_year': current_year,
-            'display_date': date(current_year, current_month, 1),
-            'prev_month': prev_month,
-            'prev_year': prev_year,
-            'next_month': next_month,
-            'next_year': next_year,
-            'event_form': event_form,
-            'event_added': event_added,
+            **calendar_context,
+            'event_form': EventForm(),
+            'event_added': request.GET.get('event_added') == '1',
             'rsvped_ids': list(rsvped_ids),
         }
 
