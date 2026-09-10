@@ -1,9 +1,10 @@
-# Python
+# Python & Environments
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+.venv/
 venv/
 ENV/
 env/
@@ -17,13 +18,24 @@ nosetests.xml
 coverage.xml
 *.cover
 
-# Django
+# Django & Databases
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles
+
+# Migrations
+**/migrations/
+**/migrations/**
+migrations/
+
+# Static Files (Ignore top-level collected static, preserve app static in pages)
+/static/
+/code/ERASEwebsite/static/
+!**/pages/static/
+!**/pages/static/**
 
 # IDE/Editor
 .vscode/
