@@ -7,7 +7,7 @@ on:
       - '**'
   pull_request:
     branches: [ "main" ]
-  workflow_dispatch: Manual triggers.
+  workflow_dispatch: # Manual triggers.
 
 jobs:
   test:
