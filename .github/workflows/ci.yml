@@ -1,0 +1,50 @@
+name: GitHub CI
+
+# Defines the triggers on the workflow:
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: Manual triggers.
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+  
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14.3'
+          cache: 'pip'
+        
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      
+      - name: Run Linter (Flake8)
+        run: |
+          pip install Flake8
+          # stop the build if there are Python syntax errors/undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127
+      
+      - name: Run Django System Checks
+        run: python manage.py check
+      
+      - name: Check for Missing Migrations
+        run: python manage.py makemigrations --check --dry-run
+      
+      - name: Run Migrations
+        run: python manage.py migrate
+
+      - name: Run Tests
+        run: python manage.py test
+
