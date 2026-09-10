@@ -12,6 +12,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./code/ERASEwebsite
   
     steps:
       - name: Checkout repository code
